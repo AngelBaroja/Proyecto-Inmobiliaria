@@ -10,13 +10,13 @@ namespace Proyecto_Inmobiliaria.Net_Core.Models
     {
         [Key]
         [Display(Name = "Código")]
-        public int Id { get; set; }
+        public int id { get; set; }
         [Required]
         public string Nombre { get; set; }
         [Required]
         public string Apellido { get; set; }
         [Required]
-        public int Dni { get; set; }
+        public int DNI { get; set; }
         public string Telefono { get; set; }
         [Required, EmailAddress]
         public string Email { get; set; }

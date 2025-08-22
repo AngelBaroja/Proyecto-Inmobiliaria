@@ -1,0 +1,93 @@
+using System.Data;
+using Proyecto_Inmobiliaria.Net_Core.Models;
+using Microsoft.AspNetCore.Mvc;
+
+namespace Inmobiliaria.Controllers
+{
+    public class InquilinoController : Controller
+    {
+        private readonly RepositorioInquilino repositorio;
+
+        public InquilinoController(IConfiguration config)
+        {
+            this.repositorio = new RepositorioInquilino(config);
+        }
+        [HttpGet]
+        public ActionResult Index()
+        {
+            try
+            {
+                var lista = repositorio.ObtenerTodos();
+                ViewBag.id = TempData["id"];
+                if (TempData.ContainsKey("Mensaje"))
+                    ViewBag.Mensaje = TempData["Mensaje"];
+                return View(lista);
+            }
+            catch (Exception ex)
+            {
+                ModelState.AddModelError("", $"Error al obtener la lista de inquilinos: {ex.Message}");
+                return View();
+            }
+        }
+        [HttpGet]
+        public IActionResult Editar(int id)
+        {
+            if (id > 0)
+            {
+                var inquilino = repositorio.ObtenerPorId(id);
+                return View(inquilino);
+            }
+            else
+            {
+                return View();
+            }
+        }
+        public IActionResult Detalle(int id)
+        {
+            if (id > 0)
+            {
+                var inquilino = repositorio.ObtenerPorId(id);
+                return View(inquilino);
+            }
+            else
+            {
+                return View();
+            }
+        }
+        [HttpPost]
+        public IActionResult Guardar(Inquilino inquilino)
+        {
+            if (!ModelState.IsValid)
+            {
+                return View(inquilino);
+            }
+            if (inquilino.id > 0)
+            {
+                repositorio.Modificacion(inquilino);
+                TempData["SuccessMessage"] = "Inquilino actualizado correctamente.";
+            }
+            else
+            {
+                repositorio.Alta(inquilino);
+                TempData["SuccessMessage"] = "Inquilino creado correctamente.";
+            }
+            return RedirectToAction(nameof(Index));
+        }
+        [HttpPost]
+        public IActionResult Eliminar(int id)
+        {
+            try
+            {
+                repositorio.Baja(id);
+                TempData["SuccessMessage"] = "Inquilino eliminado correctamente.";
+            }
+            catch (Exception ex)
+            {
+                TempData["SuccessMessage"] = "No se pudo eliminar el inquilino debido a que posee un contrato vigente";
+                Console.WriteLine(ex.Message);
+            }
+            return RedirectToAction(nameof(Index));
+        }
+    }
+    
+}
