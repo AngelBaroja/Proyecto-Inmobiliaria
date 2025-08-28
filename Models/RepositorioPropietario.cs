@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 using MySql.Data.MySqlClient;
 
 
-namespace Proyecto_Inmobiliaria.Net_Core.Models
+namespace Proyecto_Inmobiliaria.Models
 {
     public class RepositorioPropietario : RepositorioBase
     {

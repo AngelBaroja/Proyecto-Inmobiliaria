@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace Proyecto_Inmobiliaria.Net_Core.Models
+namespace Proyecto_Inmobiliaria.Models
 {
     public class Propietario
     {

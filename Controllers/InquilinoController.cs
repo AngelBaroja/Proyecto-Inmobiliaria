@@ -1,8 +1,8 @@
 using System.Data;
-using Proyecto_Inmobiliaria.Net_Core.Models;
+using Proyecto_Inmobiliaria.Models;
 using Microsoft.AspNetCore.Mvc;
 
-namespace Inmobiliaria.Controllers
+namespace Proyecto_Inmobiliaria.Controllers
 {
     public class InquilinoController : Controller
     {

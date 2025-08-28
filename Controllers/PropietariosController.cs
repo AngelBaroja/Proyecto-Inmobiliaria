@@ -1,17 +1,17 @@
 using Microsoft.AspNetCore.Mvc;
-using Proyecto_Inmobiliaria.Net_Core.Models;
+using Proyecto_Inmobiliaria.Models;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Proyecto_Inmobiliaria.Net_Core.Controllers
+namespace Proyecto_Inmobiliaria.Controllers
 {
     public class PropietariosController : Controller
     {
         private readonly RepositorioPropietario repositorioPropietario;
 
-        public PropietariosController(RepositorioPropietario _repositorioPropietario)
+        public PropietariosController(IConfiguration config)
         {
-            repositorioPropietario = _repositorioPropietario;
+            repositorioPropietario = new RepositorioPropietario(config);
         }
 
         // GET: Propietarios

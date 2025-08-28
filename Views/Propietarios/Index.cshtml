@@ -1,4 +1,4 @@
-@model IEnumerable<Proyecto_Inmobiliaria.Net_Core.Models.Propietario>
+@model IEnumerable<Proyecto_Inmobiliaria.Models.Propietario>
 
 @{
     ViewData["Title"] = "Propietarios";
@@ -17,7 +17,7 @@
                 @Html.DisplayNameFor(model => model.Id)
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.Nombre)
+                @model.First().Nombre
             </th>
             <th>
                 @Html.DisplayNameFor(model => model.Apellido)
@@ -45,7 +45,7 @@
                     @Html.DisplayFor(modelItem => item.Id)
                 </td>
                 <td>
-                    @Html.DisplayFor(modelItem => item.Nombre)
+                    @item.Nombre
                 </td>
                 <td>
                     @Html.DisplayFor(modelItem => item.Apellido)

@@ -1,6 +1,6 @@
 
-using Proyecto_Inmobiliaria.Net_Core.Models;
-using Proyecto_Inmobiliaria.Net_Core.Controllers;
+using Proyecto_Inmobiliaria.Models;
+using Proyecto_Inmobiliaria.Controllers;
 
 var builder = WebApplication.CreateBuilder(args);
 

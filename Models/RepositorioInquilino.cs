@@ -1,6 +1,6 @@
 using System;
 using System.Data;
-using Proyecto_Inmobiliaria.Net_Core.Models;
+using Proyecto_Inmobiliaria.Models;
 using MySql.Data.MySqlClient;
 
 public class RepositorioInquilino : RepositorioBase
