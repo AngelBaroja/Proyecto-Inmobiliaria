@@ -21,18 +21,20 @@ namespace Proyecto_Inmobiliaria.Models
 		[Required]
 		public int Ambientes { get; set; }
         [Required]
-        public int Uso { get; set; }
+        public string Uso { get; set; }
         [Required]
         public string Tipo { get; set; }
         [Required]
 		public int Superficie { get; set; }
+		[Required]
+		public int Precio { get; set; }
         
 		public decimal? Latitud { get; set; }
 		public decimal? Longitud { get; set; }
-		[Display(Name = "ID Dueño")]
+		[Display(Name = "Dueño")]
 		public int IdPropietario { get; set; }
 		[ForeignKey(nameof(IdPropietario))]    
-		public Propietario? Duenio { get; set; }	
+		public Propietario? Propietario { get; set; }	
 		
 		public string Estado { get; set; } 
 	}

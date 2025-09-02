@@ -21,8 +21,8 @@ namespace Proyecto_Inmobiliaria.Models
 			using (var connection = new MySqlConnection(connectionString))
 			{
 				string sql = @"INSERT INTO Inmuebles 
-					(direccion, ambientes, uso, tipo, superficie, latitud, longitud, estado, idPropietario)
-					VALUES (@direccion, @ambientes, @uso, @tipo, @superficie, @latitud, @longitud, @estado, @idPropietario);
+					(direccion, ambientes, uso, tipo, superficie, latitud, longitud, estado, precio, idPropietario)
+					VALUES (@direccion, @ambientes, @uso, @tipo, @superficie, @latitud, @longitud, @estado, @precio, @idPropietario);
 					SELECT LAST_INSERT_ID();";//devuelve el id insertado (LAST_INSERT_ID para mysql)
 				using (var command = new MySqlCommand(sql, connection))
 				{
@@ -34,6 +34,8 @@ namespace Proyecto_Inmobiliaria.Models
 					command.Parameters.AddWithValue("@superficie", entidad.Superficie);
 					command.Parameters.AddWithValue("@latitud", entidad.Latitud);
 					command.Parameters.AddWithValue("@longitud", entidad.Longitud);
+					command.Parameters.AddWithValue("@estado", entidad.Estado);
+					command.Parameters.AddWithValue("@precio", entidad.Precio);
 					command.Parameters.AddWithValue("@idPropietario", entidad.IdPropietario);
 					connection.Open();
 					res = Convert.ToInt32(command.ExecuteScalar());
@@ -67,7 +69,7 @@ namespace Proyecto_Inmobiliaria.Models
 			{
 				string sql = @"
 					UPDATE Inmuebles SET
-					direccion=@direccion, tipo=@tipo, uso=@uso, ambientes=@ambientes, superficie=@superficie, latitud=@latitud, longitud=@longitud, estado=@estado. idPropietario=@idPropietario
+					direccion=@direccion, tipo=@tipo, uso=@uso, ambientes=@ambientes, superficie=@superficie, latitud=@latitud, longitud=@longitud, estado=@estado, precio=@precio, idPropietario=@idPropietario
 					WHERE id = @id";
 				using (MySqlCommand command = new MySqlCommand(sql, connection))
 				{
@@ -78,6 +80,8 @@ namespace Proyecto_Inmobiliaria.Models
 					command.Parameters.AddWithValue("@superficie", entidad.Superficie);
 					command.Parameters.AddWithValue("@latitud", entidad.Latitud);
 					command.Parameters.AddWithValue("@longitud", entidad.Longitud);
+					command.Parameters.AddWithValue("@estado", entidad.Estado);
+					command.Parameters.AddWithValue("@precio", entidad.Precio);
 					command.Parameters.AddWithValue("@idPropietario", entidad.IdPropietario);
 					command.Parameters.AddWithValue("@id", entidad.Id);
 					command.CommandType = CommandType.Text;
@@ -116,7 +120,7 @@ namespace Proyecto_Inmobiliaria.Models
             IList<Inmueble> res = new List<Inmueble>();
             using (var connection = new MySqlConnection(connectionString))
             {
-                string sql = @"SELECT id, direccion, uso, tipo, ambientes, superficie, latitud, longitud, estado, idPropietario, 
+                string sql = @"SELECT i.id, i.direccion, i.uso, i.tipo, i.ambientes, i.superficie, i.latitud, i.longitud, i.estado, i.precio, i.idPropietario, 
                             p.nombre, p.apellido, p.DNI
                             FROM Inmuebles i INNER JOIN Propietarios p ON i.idPropietario = p.id";
                 using (MySqlCommand command = new MySqlCommand(sql, connection))
@@ -131,19 +135,21 @@ namespace Proyecto_Inmobiliaria.Models
                             Id = reader.GetInt32(nameof(Inmueble.Id)),
                             Direccion = reader[nameof(Inmueble.Direccion)] == DBNull.Value ? "" : reader.GetString(nameof(Inmueble.Direccion)),
                             Ambientes = reader.GetInt32(nameof(Inmueble.Ambientes)),
-                            Uso = reader.GetInt32(nameof(Inmueble.Uso)),
+                            Uso = reader.GetString(nameof(Inmueble.Uso)),
                             Tipo = reader.GetString(nameof(Inmueble.Tipo)),
                             Superficie = reader.GetInt32(nameof(Inmueble.Superficie)),
                             Latitud = reader.IsDBNull(reader.GetOrdinal(nameof(Inmueble.Latitud))) ? (decimal?)null : reader.GetDecimal(nameof(Inmueble.Latitud)),
                             Longitud = reader.IsDBNull(reader.GetOrdinal(nameof(Inmueble.Longitud))) ? (decimal?)null : reader.GetDecimal(nameof(Inmueble.Longitud)),
                             Estado = reader.GetString(nameof(Inmueble.Estado)),
+							Precio = reader.GetInt32(nameof(Inmueble.Precio)),
                             IdPropietario = reader.GetInt32(nameof(Inmueble.IdPropietario)),
-                            Duenio = new Propietario
-                            {
-                                Id = reader.GetInt32(nameof(Propietario.Id)),
-                                Nombre = reader.GetString(nameof(Propietario.Nombre)),
-                                Apellido = reader.GetString(nameof(Propietario.Apellido)),
-                                //Dni = reader.GetString(nameof(Propietario.Dni)),
+							Propietario = new Propietario
+							{
+								Id = reader.GetInt32(nameof(Propietario.Id)),
+								Nombre = reader.GetString(nameof(Propietario.Nombre)),
+								Apellido = reader.GetString(nameof(Propietario.Apellido)),
+								Dni = reader.GetInt32(nameof(Propietario.Dni)),
+								
                             }
                         };
                         res.Add(entidad);
@@ -160,9 +166,9 @@ namespace Proyecto_Inmobiliaria.Models
             using (var connection = new MySqlConnection(connectionString))
             {
                 string sql = @$"
-                    SELECT {nameof(Inmueble.Id)}, Direccion, Ambientes, Uso, Tipo, Superficie, Latitud, Longitud, Estado, IdPropietario, p.Nombre, p.Apellido
-                    FROM Inmuebles i JOIN Propietarios p ON i.PropietarioId = p.IdPropietario
-                    WHERE {nameof(Inmueble.Id)} = @id";
+                    SELECT i.Id, i.Direccion, i.Ambientes, i.Uso, i.Tipo, i.Superficie, i.Latitud, i.Longitud, i.Estado, i.Precio, i.IdPropietario, p.Nombre, p.Apellido
+                    FROM Inmuebles i JOIN Propietarios p ON i.IdPropietario = p.Id
+                    WHERE i.{nameof(Inmueble.Id)} = @id";
                 using (MySqlCommand command = new MySqlCommand(sql, connection))
                 {
                     command.Parameters.AddWithValue("@id", id);
@@ -177,17 +183,19 @@ namespace Proyecto_Inmobiliaria.Models
                             Direccion = reader.IsDBNull(reader.GetOrdinal(nameof(Inmueble.Direccion))) ? "" : reader.GetString(reader.GetOrdinal(nameof(Inmueble.Direccion))),
                             Ambientes = reader.GetInt32(reader.GetOrdinal(nameof(Inmueble.Ambientes))),
                             Tipo = reader.GetString(reader.GetOrdinal(nameof(Inmueble.Tipo))),
-                            Uso = reader.GetInt32(reader.GetOrdinal(nameof(Inmueble.Uso))),
+                            Uso = reader.GetString(reader.GetOrdinal(nameof(Inmueble.Uso))),
                             Superficie = reader.GetInt32(reader.GetOrdinal(nameof(Inmueble.Superficie))),
                             Latitud = reader.IsDBNull(reader.GetOrdinal(nameof(Inmueble.Latitud))) ? (decimal?)null : reader.GetDecimal(reader.GetOrdinal(nameof(Inmueble.Latitud))),
                             Longitud = reader.IsDBNull(reader.GetOrdinal(nameof(Inmueble.Longitud))) ? (decimal?)null : reader.GetDecimal(reader.GetOrdinal(nameof(Inmueble.Longitud))),
+							Estado = reader.GetString(reader.GetOrdinal(nameof(Inmueble.Estado))),
+							Precio = reader.GetInt32(reader.GetOrdinal(nameof(Inmueble.Precio))),
                             IdPropietario = reader.GetInt32(reader.GetOrdinal(nameof(Inmueble.IdPropietario))),
-                            Duenio = new Propietario
+                            Propietario = new Propietario
                             {
                                 Id = reader.GetInt32(reader.GetOrdinal(nameof(Inmueble.IdPropietario))),
                                 Nombre = reader.GetString(reader.GetOrdinal(nameof(Propietario.Nombre))),
                                 Apellido = reader.GetString(reader.GetOrdinal(nameof(Propietario.Apellido))),
-                                //DNI = reader.GetString(reader.GetOrdinal(nameof(Propietario.Dni))),
+                                //Dni = reader.GetInt32(reader.GetOrdinal(nameof(Propietario.Dni))),
                             }
                         };
                     }
@@ -204,12 +212,12 @@ namespace Proyecto_Inmobiliaria.Models
 			using (var connection = new MySqlConnection(connectionString))
 			{
 				string sql = @$"
-					SELECT {nameof(Inmueble.Id)}, Direccion, Ambientes, Superficie, Latitud, Longitud, PropietarioId, p.Nombre, p.Apellido
-					FROM Inmuebles i JOIN Propietarios p ON i.PropietarioId = p.IdPropietario
-					WHERE PropietarioId=@idPropietario";
-				using (SqlCommand command = new SqlCommand(sql, connection))
+					SELECT i.Id, i.Direccion, i.Ambientes, i.Uso, i.Tipo, i.Superficie, i.Latitud, i.Longitud, i.Estado, i.Precio, i.idPropietario, p.Nombre, p.Apellido
+					FROM Inmuebles i JOIN Propietarios p ON i.idPropietario = p.id
+					WHERE idPropietario=@idPropietario";
+				using (MySqlCommand command = new MySqlCommand(sql, connection))
 				{
-					command.Parameters.Add("@idPropietario", SqlDbType.Int).Value = idPropietario;
+					command.Parameters.AddWithValue("@idPropietario", idPropietario);
 					command.CommandType = CommandType.Text;
 					connection.Open();
 					var reader = command.ExecuteReader();
@@ -220,13 +228,17 @@ namespace Proyecto_Inmobiliaria.Models
 							Id = reader.GetInt32(nameof(Inmueble.Id)),
 							Direccion = reader["Direccion"] == DBNull.Value? "" : reader.GetString("Direccion"),
 							Ambientes = reader.GetInt32("Ambientes"),
+							Uso = reader.GetString("Uso"),
+							Tipo = reader.GetString("Tipo"),
 							Superficie = reader.GetInt32("Superficie"),
 							Latitud = reader.GetDecimal("Latitud"),
 							Longitud = reader.GetDecimal("Longitud"),
-							PropietarioId = reader.GetInt32("PropietarioId"),
-							Duenio = new Propietario
+							Estado = reader.GetString("Estado"),
+							Precio = reader.GetInt32("Precio"),
+							IdPropietario = reader.GetInt32("idPropietario"),
+							Propietario = new Propietario
 							{
-								IdPropietario = reader.GetInt32("PropietarioId"),
+								Id = reader.GetInt32("idPropietario"),
 								Nombre = reader.GetString("Nombre"),
 								Apellido = reader.GetString("Apellido"),
 							}

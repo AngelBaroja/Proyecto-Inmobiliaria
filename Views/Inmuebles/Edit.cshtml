@@ -1,0 +1,87 @@
+@model Proyecto_Inmobiliaria.Models.Inmueble
+
+@{
+    ViewData["Title"] = "Editar Inmueble";
+    var propietarios = ViewBag.Propietarios as List<SelectListItem>;
+    Inmueble inmueble = Model;
+}
+
+<h2>Editar Inmueble</h2>
+
+<form asp-action="Edit" method="post">
+    <input type="hidden" asp-for="Id" />
+    <div class="form-group">
+        <label asp-for="Direccion">Dirección</label>
+        <input asp-for="Direccion" class="form-control" required />
+        <span asp-validation-for="Direccion" class="text-danger"></span>
+    </div>
+    <div class="form-group">
+        <label asp-for="Tipo">Tipo</label>
+        <select asp-for="Tipo" class="form-control" required>
+            <option value="">Seleccione...</option>
+            <option value="Local" selected="@(inmueble.Tipo == "Local")">Local</option>
+            <option value="Depósito" selected="@(inmueble.Tipo == "Depósito")">Depósito</option>
+            <option value="Casa" selected="@(inmueble.Tipo == "Casa")">Casa</option>
+            <option value="Departamento" selected="@(inmueble.Tipo == "Departamento")">Departamento</option>
+        </select>
+        <span asp-validation-for="Tipo" class="text-danger"></span>
+    </div>  
+    <div class="form-group">
+        <label asp-for="Uso">Uso</label>
+        <select asp-for="Uso" class="form-control" required />            
+            <option value="">Seleccione...</option>
+            <option value="Comercial" selected="@(inmueble.Uso == "Comercial")">Comercial</option>
+            <option value="Residencial" selected="@(inmueble.Uso == "Residencial")">Residencial</option>
+        </select>
+        </select>
+        <span asp-validation-for="Uso" class="text-danger"></span>
+    </div>   
+    <div class="form-group">
+        <label asp-for="Ambientes">Ambientes</label>
+        <input asp-for="Ambientes" class="form-control" required />
+        <span asp-validation-for="Ambientes" class="text-danger"></span>
+    </div>
+    <div class="form-group">
+        <label asp-for="Superficie">Superficie m²</label>
+        <input asp-for="Superficie" class="form-control" type="number" required />
+        <span asp-validation-for="Superficie" class="text-danger"></span>
+    </div>
+    <div class="form-group">
+        <label asp-for="Latitud">Latitud</label>
+        <input asp-for="Latitud" class="form-control" type="number" step="any" />
+        <span asp-validation-for="Latitud" class="text-danger"></span>
+    </div>
+    <div class="form-group">
+        <label asp-for="Longitud">Longitud</label>
+        <input asp-for="Longitud" class="form-control" type="number" step="any" />
+        <span asp-validation-for="Longitud" class="text-danger"></span>
+    </div>
+    <div class="form-group">
+        <label asp-for="Estado">Estado</label>
+        <select asp-for="Estado" class="form-control" required />
+            <option value="">Seleccione...</option>
+            <option value="Disponible" selected="@(inmueble.Estado == "Disponible")">Disponible</option>
+            <option value="Ocupado" selected="@(inmueble.Estado == "Ocupado")">Ocupado</option>
+            <option value="No Disponible" selected="@(inmueble.Estado == "No Disponible")">No Disponible</option>
+        </select>
+        <span asp-validation-for="Estado" class="text-danger"></span>
+    </div>
+    <div class="form-group">
+        <label asp-for="Precio">Precio $</label>
+        <input asp-for="Precio" class="form-control" type="number"/>
+        <span asp-validation-for="Precio" class="text-danger"></span>
+    </div>
+    <div class="form-group">
+        <label asp-for="IdPropietario">Propietario</label>
+        <select asp-for="IdPropietario" asp-items="propietarios" class="form-control" required>
+            <option value="">Seleccione...</option>
+            @foreach (var propietario in propietarios)
+            {
+                <option value="@propietario.Value">@propietario.Text</option>
+            }
+        </select>
+        <span asp-validation-for="IdPropietario" class="text-danger"></span>
+    </div>
+    <button type="submit" class="btn btn-primary">Guardar</button>
+    <a asp-action="Index" class="text-volver">Volver a la lista</a>
+</form>
