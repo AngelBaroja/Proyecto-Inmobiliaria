@@ -8,7 +8,9 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllersWithViews();
 
 // Aquí agregamos el repositorio como un servicio scoped
-builder.Services.AddScoped<RepositorioPropietario>();
+// builder.Services.AddScoped<RepositorioPropietario>();
+builder.Services.AddScoped<IRepositorioPropietario, RepositorioPropietario>();
+builder.Services.AddScoped<IRepositorioInmueble, RepositorioInmueble>();
 
 var app = builder.Build();
 

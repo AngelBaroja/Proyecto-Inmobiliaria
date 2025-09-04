@@ -6,11 +6,12 @@ using System.Data.SqlClient;
 using System.Linq;
 using System.Threading.Tasks;
 using MySql.Data.MySqlClient;
+using Proyecto_Inmobiliaria.Models;
 
 
 namespace Proyecto_Inmobiliaria.Models
 {
-    public class RepositorioPropietario : RepositorioBase
+    public class RepositorioPropietario : RepositorioBase, IRepositorioPropietario
     {
         public RepositorioPropietario(IConfiguration configuration) : base(configuration)
         {
@@ -43,9 +44,9 @@ namespace Proyecto_Inmobiliaria.Models
             return res;
         }
 
-        public bool Baja(int id)
+        public int Baja(int id)
         {
-            bool res = false;
+            int res = -1;
             using (MySqlConnection connection = new MySqlConnection(connectionString))
             {
                 string sql = "DELETE FROM propietarios WHERE id = @id";
@@ -54,7 +55,7 @@ namespace Proyecto_Inmobiliaria.Models
                     command.CommandType = CommandType.Text;
                     command.Parameters.AddWithValue("@id", id);
                     connection.Open();
-                    res = command.ExecuteNonQuery() > 0;
+                    res = command.ExecuteNonQuery();
                     connection.Close();
                 }
             }
@@ -80,9 +81,9 @@ namespace Proyecto_Inmobiliaria.Models
             return res;
         }
 
-        public bool Actualizar(Propietario p)
+        public int Modificacion(Propietario p)
         {
-            bool res = false;
+            int res = -1;
             using (MySqlConnection connection = new MySqlConnection(connectionString))
             {
                 string sql = @"UPDATE propietarios 
@@ -99,7 +100,8 @@ namespace Proyecto_Inmobiliaria.Models
                     command.Parameters.AddWithValue("@email", p.Email);
                     command.Parameters.AddWithValue("@estado", p.Estado);
                     connection.Open();
-                    res = command.ExecuteNonQuery() > 0;
+                    res = command.ExecuteNonQuery();
+                    p.Id = res;
                     connection.Close();
                 }
             }
@@ -146,7 +148,7 @@ namespace Proyecto_Inmobiliaria.Models
             {
                 string sql = @$"
 					SELECT COUNT(id)
-					FROM Propietarios
+					FROM propietarios
 				";
                 using (MySqlCommand command = new MySqlCommand(sql, connection))
                 {
@@ -197,42 +199,113 @@ namespace Proyecto_Inmobiliaria.Models
             }
             return propietario;
         }
-        
+
         public IList<Propietario> BuscarPorNombre(string nombre)
+        {
+            List<Propietario> res = new List<Propietario>();
+            Propietario p = null;
+            nombre = "%" + nombre + "%";
+            using (MySqlConnection connection = new MySqlConnection(connectionString))
+            {
+                string sql = @"SELECT id, nombre, apellido, DNI, telefono, email, estado 
+					FROM propietarios
+					WHERE nombre LIKE @nombre OR apellido LIKE @nombre";
+                using (MySqlCommand command = new MySqlCommand(sql, connection))
+                {
+                    command.Parameters.AddWithValue("@nombre", nombre);
+                    command.CommandType = CommandType.Text;
+                    connection.Open();
+                    var reader = command.ExecuteReader();
+                    while (reader.Read())
+                    {
+                        p = new Propietario
+                        {
+                            Id = reader.GetInt32("id"),
+                            Nombre = reader.GetString("nombre"),
+                            Apellido = reader.GetString("apellido"),
+                            Dni = reader.GetInt32("DNI"),
+                            Telefono = reader.GetString("telefono"),
+                            Email = reader.GetString("email"),
+                            Estado = reader.GetBoolean("estado"),
+                        };
+                        res.Add(p);
+                    }
+                    connection.Close();
+                }
+            }
+            return res;
+        }
+
+        public Propietario ObtenerPorEmail(string email)
 		{
-			List<Propietario> res = new List<Propietario>();
 			Propietario p = null;
-			nombre = "%" + nombre + "%";
 			using (MySqlConnection connection = new MySqlConnection(connectionString))
 			{
-				string sql = @"SELECT id, nombre, apellido, DNI, telefono, email, estado 
-					FROM Propietarios
-					WHERE nombre LIKE @nombre OR apellido LIKE @nombre";
+				string sql = @"SELECT Id, Nombre, Apellido, Dni, Telefono, Email, Estado 
+					FROM propietarios
+					WHERE Email=@email";
 				using (MySqlCommand command = new MySqlCommand(sql, connection))
 				{
-                    command.Parameters.AddWithValue("@nombre", nombre);
 					command.CommandType = CommandType.Text;
+					command.Parameters.AddWithValue("@email", email);
 					connection.Open();
 					var reader = command.ExecuteReader();
-					while (reader.Read())
+					if (reader.Read())
 					{
 						p = new Propietario
 						{
-							Id = reader.GetInt32("id"),
-							Nombre = reader.GetString("nombre"),
-							Apellido = reader.GetString("apellido"),
-							Dni = reader.GetInt32("DNI"),
-							Telefono = reader.GetString("telefono"),
-							Email = reader.GetString("email"),
-							Estado = reader.GetBoolean("estado"),
+							Id = reader.GetInt32(nameof(Propietario.Id)),
+							Nombre = reader.GetString("Nombre"),
+							Apellido = reader.GetString("Apellido"),
+							Dni = reader.GetInt32("Dni"),
+							Telefono = reader.GetString("Telefono"),
+							Email = reader.GetString("Email"),
+							Estado = reader.GetBoolean("Estado"),
 						};
-						res.Add(p);
 					}
 					connection.Close();
 				}
 			}
-			return res;
+			return p;
 		}
+
+        public IList<Propietario> ObtenerLista(int paginaNro = 1, int tamPagina = 10)
+        {
+            IList<Propietario> res = new List<Propietario>();
+            using (MySqlConnection connection = new MySqlConnection(connectionString))
+            {
+                string sql = @$"
+					SELECT Id, Nombre, Apellido, Dni, Telefono, Email, Estado
+					FROM propietarios
+					ORDER BY id
+                    LIMIT {tamPagina} OFFSET {(paginaNro - 1) * tamPagina}
+				";
+                using (MySqlCommand command = new MySqlCommand(sql, connection))
+                {
+                    command.CommandType = CommandType.Text;
+                    connection.Open();
+                    var reader = command.ExecuteReader();
+                    while (reader.Read())
+                    {
+                        Propietario p = new Propietario
+                        {
+                            Id = reader.GetInt32(nameof(Propietario.Id)),//más seguro
+                            Nombre = reader.GetString(nameof(Propietario.Nombre)),
+                            Apellido = reader.GetString("Apellido"),
+                            Dni = reader.GetInt32("Dni"),
+                            Telefono = reader.GetString("Telefono"),
+                            Email = reader.GetString("Email"),
+                            Estado = reader.GetBoolean("Estado"),
+                        };
+                        res.Add(p);
+                    }
+                    connection.Close();
+                }
+            }
+            return res;
+        }
+        
+
 
         
     }

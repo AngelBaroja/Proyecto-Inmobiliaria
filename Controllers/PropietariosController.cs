@@ -7,11 +7,12 @@ namespace Proyecto_Inmobiliaria.Controllers
 {
     public class PropietariosController : Controller
     {
-        private readonly RepositorioPropietario repositorioPropietario;
+        private readonly IRepositorioPropietario repositorioPropietario;        
 
-        public PropietariosController(IConfiguration config)
+        public PropietariosController(IRepositorioPropietario repo)
         {
-            repositorioPropietario = new RepositorioPropietario(config);
+            repositorioPropietario = repo;            
+
         }
 
         // GET: Propietarios
@@ -62,7 +63,7 @@ namespace Proyecto_Inmobiliaria.Controllers
             {
                 
                 //propietario.Estado = propietario.Estado ?? false; // Establece a false si no se proporciona
-                repositorioPropietario.Actualizar(propietario);
+                repositorioPropietario.Modificacion(propietario);
                 return RedirectToAction(nameof(Index));
             }
             return View(propietario);

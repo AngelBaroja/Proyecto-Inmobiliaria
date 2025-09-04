@@ -8,12 +8,12 @@ namespace Proyecto_Inmobiliaria.Controllers
 {
     public class InmueblesController : Controller
     {
-        private readonly RepositorioInmueble repositorioInmueble; 
-        private readonly RepositorioPropietario repositorioPropietario;
-        public InmueblesController(IConfiguration config)
+        private readonly IRepositorioInmueble repositorioInmueble; 
+        private readonly IRepositorioPropietario repositorioPropietario;
+        public InmueblesController(IRepositorioPropietario repositorioPropietario, IRepositorioInmueble repositorioInmueble)
         {
-            this.repositorioInmueble = new RepositorioInmueble(config);
-            this.repositorioPropietario = new RepositorioPropietario(config);
+            this.repositorioInmueble = repositorioInmueble;
+            this.repositorioPropietario = repositorioPropietario;
         }        
 
         // GET: Inmuebles
