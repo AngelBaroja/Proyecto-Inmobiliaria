@@ -1,0 +1,86 @@
+@model IEnumerable<Proyecto_Inmobiliaria.Models.Contrato>
+
+@{
+    ViewData["Title"] = "Contratos";
+}
+
+<h1 class="text-center">Contratos</h1>
+
+
+
+<div class="input-group mb-3">
+    <input type="text" class="form-control" placeholder="Buscar..." id="searchInput">
+    <div class="input-group-append">
+        <a asp-action="Editar" class="btn btn-primary">Crear nuevo</a>
+    </div>
+</div>
+@if (ViewData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success" role="alert">
+        @ViewData["SuccessMessage"]
+    </div>
+}
+<table class="table table-striped table-bordered table-hover">
+    <thead>
+        <tr>
+
+            <th>
+                @Html.DisplayNameFor(model => model.FechaInicio)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.FechaFin)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Monto)
+            </th>
+            <th>
+                Inquilino
+            </th>
+            <th>
+                Inmueble
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>
+                    @item.FechaInicio.ToString("dd/MM/yyyy")
+                </td>
+                <td>
+                    @item.FechaFin.ToString("dd/MM/yyyy")
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Monto)
+                </td>
+                <td>
+                    @item.Inquilino?.Nombre @item.Inquilino?.Apellido
+                </td>
+                <td>
+                    @item.Inmueble?.Direccion
+                </td>
+                <td>
+                    <a asp-action="Editar" asp-route-id="@item.id" title="Editar" class="btn btn-sm btn-warning mx-1">
+                        <i class="fa fa-edit"></i>
+                    </a>
+                    <a asp-action="Detalle" asp-route-id="@item.id" title="Detalle" class="btn btn-sm btn-info mx-1">
+                        <i class="fa fa-info"></i>
+                    </a>
+                    <form asp-action="Eliminar" asp-route-id="@item.id" method="post" style="display:inline;" 
+                        onsubmit="return confirm('¿Estás seguro de eliminar el contrato?');">
+                        <button type="submit" title="Eliminar" class="btn btn-sm btn-danger mx-1">
+                            <i class="fa fa-trash"></i>
+                        </button>
+                    </form>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+@section Scripts {
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="~/js/search.js"></script>
+}

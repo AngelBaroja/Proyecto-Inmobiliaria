@@ -12,14 +12,14 @@ namespace Proyecto_Inmobiliaria.Models
         [Display(Name = "Código")]
         public int id { get; set; }
         [Required]
-        public string Nombre { get; set; }
+        public string Nombre { get; set; } = string.Empty;
         [Required]
-        public string Apellido { get; set; }
+        public string Apellido { get; set; } = string.Empty;
         [Required]
         public int DNI { get; set; }
-        public string Telefono { get; set; }
+        public string Telefono { get; set; } = string.Empty;
         [Required, EmailAddress]
-        public string Email { get; set; }
+        public string Email { get; set; } = string.Empty;
         [Required]
         public bool Estado { get; set; }
         

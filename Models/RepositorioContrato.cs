@@ -1,0 +1,167 @@
+using System.Data;
+using Proyecto_Inmobiliaria.Models;
+using MySql.Data.MySqlClient;
+
+public class RepositorioContrato : RepositorioBase
+{
+    public RepositorioContrato(IConfiguration configuration) : base(configuration)
+    {
+
+    }
+    public int Alta(Contrato p)
+    {
+        int res = -1;
+        using (var connection = new MySqlConnection(connectionString))
+        {
+            string sql = @"INSERT INTO contratos (fechaInicio, fechaFin, monto, idInquilino, idInmueble, estado)
+                           VALUES (@fechaInicio, @fechaFin, @monto, @idInquilino, @idInmueble, @estado);
+                           SELECT LAST_INSERT_ID();";
+            using (var command = new MySqlCommand(sql, connection))
+            {
+                command.CommandType = CommandType.Text;
+                command.Parameters.AddWithValue("@fechaInicio", p.FechaInicio);
+                command.Parameters.AddWithValue("@fechaFin", p.FechaFin);
+                command.Parameters.AddWithValue("@monto", p.Monto);
+                command.Parameters.AddWithValue("@idInquilino", p.idInquilino);
+                command.Parameters.AddWithValue("@idInmueble", p.idInmueble);
+                command.Parameters.AddWithValue("@estado", p.Estado);
+                connection.Open();
+                res = Convert.ToInt32(command.ExecuteScalar());
+                p.id = res;
+                connection.Close();
+            }
+        }
+        return res;
+    }
+    public int Baja(int id)
+    {
+        int res = -1;
+        using (var connection = new MySqlConnection(connectionString))
+        {
+            string sql = @$"DELETE FROM contratos WHERE {nameof(Contrato.id)} = @id";
+            using (var command = new MySqlCommand(sql, connection))
+            {
+                command.CommandType = CommandType.Text;
+                command.Parameters.AddWithValue("@id", id);
+                connection.Open();
+                res = command.ExecuteNonQuery();
+                connection.Close();
+            }
+        }
+        return res;
+    }
+    public int Modificacion(Contrato p)
+    {
+        int res = -1;
+        using (var connection = new MySqlConnection(connectionString))
+        {
+            string sql = @$"UPDATE contratos SET fechaInicio=@fechaInicio, fechaFin = @fechaFin, monto = @monto, idInquilino = @idInquilino,
+                        idInmueble = @idInmueble, estado = @estado WHERE {nameof(Contrato.id)} = @id;";
+            using (var command = new MySqlCommand(sql, connection))
+            {
+                command.CommandType = CommandType.Text;
+                command.Parameters.AddWithValue("@fechaInicio", p.FechaInicio);
+                command.Parameters.AddWithValue("@fechaFin", p.FechaFin);
+                command.Parameters.AddWithValue("@monto", p.Monto);
+                command.Parameters.AddWithValue("@idInquilino", p.idInquilino);
+                command.Parameters.AddWithValue("@idInmueble", p.idInmueble);
+                command.Parameters.AddWithValue("@estado", p.Estado);
+                command.Parameters.AddWithValue("@id", p.id);
+                connection.Open();
+                res = command.ExecuteNonQuery();
+                p.id = res;
+                connection.Close();
+            }
+        }
+        return res;
+    }
+    public IList<Contrato> ObtenerTodos(int paginaNro = 1, int tamPagina = 10)
+    {
+        IList<Contrato> res = new List<Contrato>();
+        using (var connection = new MySqlConnection(connectionString))
+        {
+            string sql = @$"SELECT id, fechaInicio, fechaFin, monto, idInquilino, idInmueble, estado FROM contratos
+            LIMIT {tamPagina} OFFSET {(paginaNro - 1) * tamPagina}";
+
+            using (var command = new MySqlCommand(sql, connection))
+            {
+                command.CommandType = CommandType.Text;
+                connection.Open();
+                var reader = command.ExecuteReader();
+                while (reader.Read())
+                {
+                    Contrato p = new Contrato
+                    {
+                        id = reader.GetInt32(nameof(Contrato.id)),
+                        FechaInicio = reader.GetDateTime("fechaInicio"),
+                        FechaFin = reader.GetDateTime("fechaFin"),
+                        Monto = reader.GetDecimal("monto"),
+                        idInquilino = reader.GetInt32("idInquilino"),
+                        idInmueble = reader.GetInt32("idInmueble"),
+                        Estado = reader.GetBoolean("estado")
+                    };
+                    res.Add(p);
+                }
+                connection.Close();
+            }
+        }
+        return res;
+    }
+
+    public Contrato? ObtenerPorId(int id)
+    {
+        Contrato? p = null;
+        using (var connection = new MySqlConnection(connectionString))
+        {
+            string sql = @"SELECT 
+					id, fechaInicio, fechaFin, monto, idInquilino, idInmueble, estado
+					FROM contratos
+					WHERE id=@id";
+            using (var command = new MySqlCommand(sql, connection))
+            {
+                command.Parameters.AddWithValue("@id", id).Value = id;
+                command.CommandType = CommandType.Text;
+                connection.Open();
+                var reader = command.ExecuteReader();
+                if (reader.Read())
+                {
+                    p = new Contrato
+                    {
+                        id = reader.GetInt32(nameof(Contrato.id)),
+                        FechaInicio = reader.GetDateTime("fechaInicio"),
+                        FechaFin = reader.GetDateTime("fechaFin"),
+                        Monto = reader.GetDecimal("monto"),
+                        idInquilino = reader.GetInt32("idInquilino"),
+                        idInmueble = reader.GetInt32("idInmueble"),
+                        Estado = reader.GetBoolean("estado")
+                    };
+                }
+                connection.Close();
+            }
+        }
+        return p;
+    }
+    public int ObtenerCantidad()
+    {
+        int res = 0;
+        using (var connection = new MySqlConnection(connectionString))
+        {
+            string sql = @$"
+                    SELECT COUNT(id)
+                    FROM contratos
+            ";
+            using (var command = new MySqlCommand(sql, connection))
+            {
+                command.CommandType = CommandType.Text;
+                connection.Open();
+                var reader = command.ExecuteReader();
+                if (reader.Read())
+                {
+                    res = reader.GetInt32(0);
+                }
+                connection.Close();
+            }
+        }
+        return res;
+    }
+}
