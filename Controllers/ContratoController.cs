@@ -16,17 +16,22 @@ namespace Proyecto_Inmobiliaria.Controllers
             this.rinm = new RepositorioInmueble(config);
         }
         [HttpGet]
-        public ActionResult Index()
+        public ActionResult Index(int pagina=1 )
         {
             try
             {
-                var lista = repositorio.ObtenerTodos();
+                var tamaño = 5;
+				var lista = repositorio.ObtenerTodos(Math.Max(pagina, 1), tamaño);
+				ViewBag.Pagina = pagina;
+				var total = repositorio.ObtenerCantidad();
+				ViewBag.TotalPaginas = total % tamaño == 0 ? total / tamaño : total / tamaño + 1;
+
                 foreach (var contrato in lista)
                 {
                     contrato.Inquilino = rinq.ObtenerPorId(contrato.idInquilino);
                     contrato.Inmueble = rinm.ObtenerPorId(contrato.idInmueble);
                 }
-                ViewBag.id = TempData["d"];
+                ViewBag.id = TempData["id"];
                 if (TempData.ContainsKey("Mensaje"))
                     ViewBag.Mensaje = TempData["Mensaje"];
                 return View(lista);
@@ -41,7 +46,7 @@ namespace Proyecto_Inmobiliaria.Controllers
         public IActionResult Editar(int id)
         {
             ViewBag.Inquilino = rinq.ObtenerTodos();
-            ViewBag.Inmueble = rinm.ObtenerTodos();
+            ViewBag.Inmueble = rinm.ObtenerDisponibles();
             if (id > 0)
             {
                 var contrato = repositorio.ObtenerPorId(id);

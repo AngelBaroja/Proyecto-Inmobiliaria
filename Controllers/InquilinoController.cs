@@ -13,11 +13,15 @@ namespace Proyecto_Inmobiliaria.Controllers
             this.repositorio = new RepositorioInquilino(config);
         }
         [HttpGet]
-        public ActionResult Index()
+        public ActionResult Index(int pagina=1)
         {
             try
-            {
-                var lista = repositorio.ObtenerTodos();
+            {   
+                var tamaño = 5;
+				var lista = repositorio.ObtenerTodos(Math.Max(pagina, 1), tamaño);
+				ViewBag.Pagina = pagina;
+				var total = repositorio.ObtenerCantidad();
+				ViewBag.TotalPaginas = total % tamaño == 0 ? total / tamaño : total / tamaño + 1;
                 ViewBag.id = TempData["id"];
                 if (TempData.ContainsKey("Mensaje"))
                     ViewBag.Mensaje = TempData["Mensaje"];

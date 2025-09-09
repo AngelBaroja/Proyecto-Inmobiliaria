@@ -16,6 +16,7 @@ public class RepositorioContrato : RepositorioBase
             string sql = @"INSERT INTO contratos (fechaInicio, fechaFin, monto, idInquilino, idInmueble, estado)
                            VALUES (@fechaInicio, @fechaFin, @monto, @idInquilino, @idInmueble, @estado);
                            SELECT LAST_INSERT_ID();";
+            connection.Open();
             using (var command = new MySqlCommand(sql, connection))
             {
                 command.CommandType = CommandType.Text;
@@ -25,9 +26,15 @@ public class RepositorioContrato : RepositorioBase
                 command.Parameters.AddWithValue("@idInquilino", p.idInquilino);
                 command.Parameters.AddWithValue("@idInmueble", p.idInmueble);
                 command.Parameters.AddWithValue("@estado", p.Estado);
-                connection.Open();
+                ;
                 res = Convert.ToInt32(command.ExecuteScalar());
                 p.id = res;
+                string updateInmueble = "UPDATE inmuebles SET estado = 'Ocupado' WHERE id = @idInmueble";
+                using (var updateCommand = new MySqlCommand(updateInmueble, connection))
+                {
+                    updateCommand.Parameters.AddWithValue("@idInmueble", p.idInmueble);
+                    updateCommand.ExecuteNonQuery();
+                }
                 connection.Close();
             }
         }
@@ -80,8 +87,10 @@ public class RepositorioContrato : RepositorioBase
         IList<Contrato> res = new List<Contrato>();
         using (var connection = new MySqlConnection(connectionString))
         {
-            string sql = @$"SELECT id, fechaInicio, fechaFin, monto, idInquilino, idInmueble, estado FROM contratos
-            LIMIT {tamPagina} OFFSET {(paginaNro - 1) * tamPagina}";
+            string sql = @$"SELECT c.*, i.nombre, i.apellido, m.direccion FROM contratos c
+                        INNER JOIN inquilinos i ON c.idInquilino = i.id
+                        INNER JOIN inmuebles m ON c.idInmueble = m.id
+                        LIMIT {tamPagina} OFFSET {(paginaNro - 1) * tamPagina}";
 
             using (var command = new MySqlCommand(sql, connection))
             {
@@ -98,7 +107,16 @@ public class RepositorioContrato : RepositorioBase
                         Monto = reader.GetDecimal("monto"),
                         idInquilino = reader.GetInt32("idInquilino"),
                         idInmueble = reader.GetInt32("idInmueble"),
-                        Estado = reader.GetBoolean("estado")
+                        Estado = reader.GetBoolean("estado"),
+                        Inquilino = new Inquilino
+                        {
+                            Nombre = reader.GetString("nombre"),
+                            Apellido = reader.GetString("apellido")
+                        },
+                        Inmueble = new Inmueble
+                        {
+                            Direccion = reader.GetString("direccion")
+                        }
                     };
                     res.Add(p);
                 }

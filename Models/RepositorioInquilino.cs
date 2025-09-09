@@ -109,7 +109,7 @@ public class RepositorioInquilino : RepositorioBase
         }
         return res;
     }
-    public Inquilino ObtenerPorEmail(string email)
+    public Inquilino? ObtenerPorEmail(string email)
     {
         Inquilino? p = null;
         using (var connection = new MySqlConnection(connectionString))
@@ -143,7 +143,7 @@ public class RepositorioInquilino : RepositorioBase
         return p;
     }
 
-    public Inquilino ObtenerPorId(int id)
+    public Inquilino? ObtenerPorId(int id)
     {
         Inquilino? p = null;
         using (var connection = new MySqlConnection(connectionString))
