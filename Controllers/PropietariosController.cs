@@ -7,11 +7,11 @@ namespace Proyecto_Inmobiliaria.Controllers
 {
     public class PropietariosController : Controller
     {
-        private readonly IRepositorioPropietario repositorioPropietario;        
+        private readonly IRepositorioPropietario repositorioPropietario;
 
         public PropietariosController(IRepositorioPropietario repo)
         {
-            repositorioPropietario = repo;            
+            repositorioPropietario = repo;
 
         }
 
@@ -45,7 +45,7 @@ namespace Proyecto_Inmobiliaria.Controllers
         // GET: Propietarios/Edit/5
         public IActionResult Edit(int id)
         {
-            var propietario = repositorioPropietario.ObtenerPorId(id);           
+            var propietario = repositorioPropietario.ObtenerPorId(id);
             return View(propietario);
         }
 
@@ -61,7 +61,7 @@ namespace Proyecto_Inmobiliaria.Controllers
 
             if (ModelState.IsValid)
             {
-                
+
                 //propietario.Estado = propietario.Estado ?? false; // Establece a false si no se proporciona
                 repositorioPropietario.Modificacion(propietario);
                 return RedirectToAction(nameof(Index));
@@ -72,7 +72,7 @@ namespace Proyecto_Inmobiliaria.Controllers
         // GET: Propietarios/Eliminar/5
         public IActionResult Eliminar(int id)
         {
-            var propietario = repositorioPropietario.ObtenerPorId(id);            
+            var propietario = repositorioPropietario.ObtenerPorId(id);
             return View(propietario);
         }
 
@@ -83,6 +83,19 @@ namespace Proyecto_Inmobiliaria.Controllers
         {
             repositorioPropietario.Baja(id);
             return RedirectToAction(nameof(Index));
+        }
+        
+        [HttpGet]
+        public IActionResult BuscarPorNombre(string q)
+        {
+            if (string.IsNullOrWhiteSpace(q) || q.Length < 3)
+                return Json(new { datos = new List<Propietario>() });
+
+            var lista = repositorioPropietario.BuscarPorNombre(q)
+                                            .Take(5)
+                                            .ToList();
+
+            return Json(new { datos = lista });
         }
     }
 }

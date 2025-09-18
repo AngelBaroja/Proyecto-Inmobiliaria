@@ -43,3 +43,19 @@ body {
   background-color:rgb(165, 162, 162);
   font-size: bold;
 }
+
+.imagen-con-hover {
+    position: relative;
+    display: inline-block;
+}
+
+.btn-eliminar-imagen {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    display: none;
+}
+
+.imagen-con-hover:hover .btn-eliminar-imagen {
+    display: inline-block;
+}

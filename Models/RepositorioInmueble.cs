@@ -92,28 +92,28 @@ namespace Proyecto_Inmobiliaria.Models
 			}
 			return res;
 		}
-		/*
+
 		public int ModificarPortada(int id, string url)
-        {
-            int res = -1;
-            using (var connection = new SqlConnection(connectionString))
-            {
-                string sql = @"
+		{
+			int res = -1;
+			using (var connection = new MySqlConnection(connectionString))
+			{
+				string sql = @"
 					UPDATE Inmuebles SET
-					Portada=@portada
+					urlPortada=@portada
 					WHERE Id = @id";
-                using (SqlCommand command = new SqlCommand(sql, connection))
-                {
-                    command.Parameters.AddWithValue("@portada", String.IsNullOrEmpty(url) ? DBNull.Value : url);
-                    command.Parameters.AddWithValue("@id", id);
-                    command.CommandType = CommandType.Text;
-                    connection.Open();
-                    res = command.ExecuteNonQuery();
-                    connection.Close();
-                }
-            }
-            return res;
-        }*/
+				using (MySqlCommand command = new MySqlCommand(sql, connection))
+				{
+					command.Parameters.AddWithValue("@portada", String.IsNullOrEmpty(url) ? DBNull.Value : url);
+					command.Parameters.AddWithValue("@id", id);
+					command.CommandType = CommandType.Text;
+					connection.Open();
+					res = command.ExecuteNonQuery();
+					connection.Close();
+				}
+			}
+			return res;
+		}
 
 		public IList<Inmueble> ObtenerTodos()
 		{
@@ -192,13 +192,16 @@ namespace Proyecto_Inmobiliaria.Models
 			using (var connection = new MySqlConnection(connectionString))
 			{
 				string sql = @$"
-                    SELECT i.Id, i.Direccion, i.Ambientes, i.Uso, i.Tipo, i.Superficie, i.Latitud, i.Longitud, i.Estado, i.Precio, i.IdPropietario, p.Nombre, p.Apellido
-                    FROM Inmuebles i JOIN Propietarios p ON i.IdPropietario = p.Id
-                    WHERE i.{nameof(Inmueble.Id)} = @id";
+					SELECT i.Id, i.Direccion, i.Ambientes, i.Uso, i.Tipo, i.Superficie, 
+						i.Latitud, i.Longitud, i.Estado, i.Precio, i.UrlPortada, i.IdPropietario, 
+						p.Nombre, p.Apellido
+					FROM Inmuebles i 
+					JOIN Propietarios p ON i.IdPropietario = p.Id
+					WHERE i.{nameof(Inmueble.Id)} = @id";
+
 				using (MySqlCommand command = new MySqlCommand(sql, connection))
 				{
 					command.Parameters.AddWithValue("@id", id);
-					command.CommandType = CommandType.Text;
 					connection.Open();
 					var reader = command.ExecuteReader();
 					if (reader.Read())
@@ -215,13 +218,13 @@ namespace Proyecto_Inmobiliaria.Models
 							Longitud = reader.IsDBNull(reader.GetOrdinal(nameof(Inmueble.Longitud))) ? (decimal?)null : reader.GetDecimal(reader.GetOrdinal(nameof(Inmueble.Longitud))),
 							Estado = reader.GetString(reader.GetOrdinal(nameof(Inmueble.Estado))),
 							Precio = reader.GetInt32(reader.GetOrdinal(nameof(Inmueble.Precio))),
+							UrlPortada = reader.IsDBNull(reader.GetOrdinal(nameof(Inmueble.UrlPortada))) ? null : reader.GetString(reader.GetOrdinal(nameof(Inmueble.UrlPortada))),
 							IdPropietario = reader.GetInt32(reader.GetOrdinal(nameof(Inmueble.IdPropietario))),
 							Propietario = new Propietario
 							{
 								Id = reader.GetInt32(reader.GetOrdinal(nameof(Inmueble.IdPropietario))),
 								Nombre = reader.GetString(reader.GetOrdinal(nameof(Propietario.Nombre))),
-								Apellido = reader.GetString(reader.GetOrdinal(nameof(Propietario.Apellido))),
-								//Dni = reader.GetInt32(reader.GetOrdinal(nameof(Propietario.Dni))),
+								Apellido = reader.GetString(reader.GetOrdinal(nameof(Propietario.Apellido)))
 							}
 						};
 					}
@@ -230,6 +233,7 @@ namespace Proyecto_Inmobiliaria.Models
 			}
 			return entidad;
 		}
+
 
 		public IList<Inmueble> BuscarPorPropietario(int idPropietario)
 		{

@@ -202,36 +202,32 @@ namespace Proyecto_Inmobiliaria.Models
 
         public IList<Propietario> BuscarPorNombre(string nombre)
         {
-            List<Propietario> res = new List<Propietario>();
-            Propietario p = null;
+            List<Propietario> res = new();
             nombre = "%" + nombre + "%";
-            using (MySqlConnection connection = new MySqlConnection(connectionString))
+
+            using MySqlConnection connection = new(connectionString);
+            string sql = @"SELECT id, nombre, apellido, DNI, telefono, email, estado 
+                        FROM propietarios
+                        WHERE nombre LIKE @nombre OR apellido LIKE @nombre
+                        LIMIT 5";
+
+            using MySqlCommand command = new(sql, connection);
+            command.Parameters.AddWithValue("@nombre", nombre);
+            connection.Open();
+
+            using var reader = command.ExecuteReader();
+            while (reader.Read())
             {
-                string sql = @"SELECT id, nombre, apellido, DNI, telefono, email, estado 
-					FROM propietarios
-					WHERE nombre LIKE @nombre OR apellido LIKE @nombre";
-                using (MySqlCommand command = new MySqlCommand(sql, connection))
+                res.Add(new Propietario
                 {
-                    command.Parameters.AddWithValue("@nombre", nombre);
-                    command.CommandType = CommandType.Text;
-                    connection.Open();
-                    var reader = command.ExecuteReader();
-                    while (reader.Read())
-                    {
-                        p = new Propietario
-                        {
-                            Id = reader.GetInt32("id"),
-                            Nombre = reader.GetString("nombre"),
-                            Apellido = reader.GetString("apellido"),
-                            Dni = reader.GetInt32("DNI"),
-                            Telefono = reader.GetString("telefono"),
-                            Email = reader.GetString("email"),
-                            Estado = reader.GetBoolean("estado"),
-                        };
-                        res.Add(p);
-                    }
-                    connection.Close();
-                }
+                    Id = reader.GetInt32("id"),
+                    Nombre = reader.GetString("nombre"),
+                    Apellido = reader.GetString("apellido"),
+                    Dni = reader.IsDBNull(reader.GetOrdinal("DNI")) ? 0 : reader.GetInt32("DNI"),
+                    Telefono = reader.IsDBNull(reader.GetOrdinal("telefono")) ? "" : reader.GetString("telefono"),
+                    Email = reader.GetString("email"),
+                    Estado = reader.GetBoolean("estado")
+                });
             }
             return res;
         }

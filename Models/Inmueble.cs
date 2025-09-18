@@ -35,6 +35,11 @@ namespace Proyecto_Inmobiliaria.Models
 		public int IdPropietario { get; set; }
 		[ForeignKey(nameof(IdPropietario))]    
 		public Propietario? Propietario { get; set; }	
+		public string? UrlPortada { get; set; }
+		[NotMapped]//Para EF
+		public IFormFile? PortadaFile { get; set; }
+		[ForeignKey(nameof(Imagen.InmuebleId))]
+		public IList<Imagen> Imagenes { get; set; } = new List<Imagen>();
 		
 		public string Estado { get; set; } 
 	}
