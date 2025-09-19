@@ -64,15 +64,15 @@
                 </td>
                 <td>
                     <div class="btn-group" role="group">
-                        <a class="btn btn-primary" asp-action="Edit" asp-route-id="@item.Id" title="Editar">
-                            <i class="fa-solid fa-pen">Editar</i>
+                        <a class="btn btn-primary" asp-action="Edit" asp-route-id="@item.Id" title="Editar Propietario">
+                            <i class="fa fa-edit"></i>
                         </a>
-                        <a class="btn btn-danger" asp-action="Eliminar" asp-route-id="@item.Id" title="Eliminar">
-                            <i class="fa-solid fa-trash-can">Eliminar</i>
+                        <a class="btn btn-danger" asp-action="Eliminar" asp-route-id="@item.Id" title="Eliminar Propietario">
+                            <i class="fa fa-trash"></i>
                         </a>                        
                         <a class="btn btn-secondary" asp-action="PorPropietario" asp-controller="Inmuebles"
-                           asp-route-id="@item.Id" title="Mis Propiedades">
-                            <i class="fa-solid fa-building">Inmuebles</i>
+                           asp-route-id="@item.Id" title="Ver Inmuebles del Propietario">
+                            <i class="fa fa-building"></i>
                         </a>
                     </div>
                 </td>

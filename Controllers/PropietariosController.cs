@@ -76,12 +76,65 @@ namespace Proyecto_Inmobiliaria.Controllers
             return View(propietario);
         }
 
-        // POST: Propietarios/Eliminar/5
+        // POST: Propietarios/Eliminar/{id}
         [HttpPost, ActionName("Eliminar")]
         [ValidateAntiForgeryToken]
-        public IActionResult EliminarConfirmed(int id)
+        public IActionResult EliminarConfirmed(
+            int id,
+            [FromServices] IRepositorioInmueble repositorioInmueble,
+            [FromServices] IRepositorioImagen repoImagen,
+            [FromServices] IWebHostEnvironment environment
+            )
         {
-            repositorioPropietario.Baja(id);
+            try
+            {
+                var inmuebles = repositorioInmueble.BuscarPorPropietario(id);
+                if (inmuebles != null || inmuebles.Any())
+                {
+                    foreach (var inmueble in inmuebles)
+                    {
+                        // 1. Eliminar portada si existe
+                        if (!string.IsNullOrEmpty(inmueble.UrlPortada))
+                        {
+                            string rutaPortada = Path.Combine(environment.WebRootPath,
+                                inmueble.UrlPortada.TrimStart('/').Replace("/", Path.DirectorySeparatorChar.ToString()));
+                            if (System.IO.File.Exists(rutaPortada))
+                            {
+                                System.IO.File.Delete(rutaPortada);
+                            }
+                        }
+
+                        // 2. Eliminar imágenes interiores
+                        var imagenes = repoImagen.BuscarPorInmueble(inmueble.Id);
+                        foreach (var img in imagenes)
+                        {
+                            if (!string.IsNullOrEmpty(img.Url))
+                            {
+                                string rutaImg = Path.Combine(environment.WebRootPath,
+                                    img.Url.TrimStart('/').Replace("/", Path.DirectorySeparatorChar.ToString()));
+                                if (System.IO.File.Exists(rutaImg))
+                                {
+                                    System.IO.File.Delete(rutaImg);
+                                }
+                            }
+                            repoImagen.Baja(img.Id);
+                        }
+
+                        // 3. Eliminar el inmueble
+                        repositorioInmueble.Baja(inmueble.Id);
+                    }
+                } 
+                
+                // 5. Eliminar el Propietario
+                repositorioPropietario.Baja(id);
+
+                TempData["Mensaje"] = "Propietario e Inmueble e imágenes eliminados correctamente.";
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = ex.Message;
+            }
+
             return RedirectToAction(nameof(Index));
         }
         

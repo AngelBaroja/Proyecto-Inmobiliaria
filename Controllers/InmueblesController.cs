@@ -106,8 +106,8 @@ namespace Proyecto_Inmobiliaria.Controllers
         [HttpPost, ActionName("Eliminar")]
         [ValidateAntiForgeryToken]
         public IActionResult EliminarConfirmed(
-            int id, 
-            [FromServices] IRepositorioImagen repoImagen, 
+            int id,
+            [FromServices] IRepositorioImagen repoImagen,
             [FromServices] IWebHostEnvironment environment)
         {
             try
@@ -121,7 +121,7 @@ namespace Proyecto_Inmobiliaria.Controllers
                 // 2. Eliminar portada si existe
                 if (!string.IsNullOrEmpty(inmueble.UrlPortada))
                 {
-                    string rutaPortada = Path.Combine(environment.WebRootPath, 
+                    string rutaPortada = Path.Combine(environment.WebRootPath,
                         inmueble.UrlPortada.TrimStart('/').Replace("/", Path.DirectorySeparatorChar.ToString()));
                     if (System.IO.File.Exists(rutaPortada))
                     {
@@ -135,7 +135,7 @@ namespace Proyecto_Inmobiliaria.Controllers
                 {
                     if (!string.IsNullOrEmpty(img.Url))
                     {
-                        string rutaImg = Path.Combine(environment.WebRootPath, 
+                        string rutaImg = Path.Combine(environment.WebRootPath,
                             img.Url.TrimStart('/').Replace("/", Path.DirectorySeparatorChar.ToString()));
                         if (System.IO.File.Exists(rutaImg))
                         {
@@ -157,7 +157,7 @@ namespace Proyecto_Inmobiliaria.Controllers
 
             return RedirectToAction(nameof(Index));
         }
-        
+
 
         // GET: Inmuebles/Imagenes/5
         public ActionResult Imagenes(int id, [FromServices] IRepositorioImagen repoImagen)
@@ -166,8 +166,8 @@ namespace Proyecto_Inmobiliaria.Controllers
             entidad.Imagenes = repoImagen.BuscarPorInmueble(id);
             return View(entidad);
         }
-        
-		[HttpPost]
+
+        [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult Portada(int InmuebleId, IFormFile PortadaFile, [FromServices] IWebHostEnvironment environment)
         {
@@ -215,6 +215,17 @@ namespace Proyecto_Inmobiliaria.Controllers
                 return RedirectToAction(nameof(Imagenes), new { id = InmuebleId });
             }
         }
+        
+        // GET: Inmuebles/PorPropietario/5
+        public IActionResult PorPropietario(int id)
+        {
+            var propietario = repositorioPropietario.ObtenerPorId(id);
+            var inmuebles = repositorioInmueble.BuscarPorPropietario(id);
+            // Le pasamos el propietario y sus inmuebles a la vista
+            ViewBag.Propietario = propietario;
+            return View(inmuebles);
+        }
+
 
 
 

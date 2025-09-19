@@ -242,7 +242,7 @@ namespace Proyecto_Inmobiliaria.Models
 			using (var connection = new MySqlConnection(connectionString))
 			{
 				string sql = @$"
-					SELECT i.Id, i.Direccion, i.Ambientes, i.Uso, i.Tipo, i.Superficie, i.Latitud, i.Longitud, i.Estado, i.Precio, i.idPropietario, p.Nombre, p.Apellido
+					SELECT i.Id, i.Direccion, i.Ambientes, i.Uso, i.Tipo, i.Superficie, i.Latitud, i.Longitud, i.Estado, i.Precio, i.idPropietario, i.urlPortada, p.Nombre, p.Apellido
 					FROM Inmuebles i JOIN Propietarios p ON i.idPropietario = p.id
 					WHERE idPropietario=@idPropietario";
 				using (MySqlCommand command = new MySqlCommand(sql, connection))
@@ -265,6 +265,7 @@ namespace Proyecto_Inmobiliaria.Models
 							Longitud = reader.GetDecimal("Longitud"),
 							Estado = reader.GetString("Estado"),
 							Precio = reader.GetInt32("Precio"),
+							UrlPortada = reader.IsDBNull(reader.GetOrdinal("urlPortada")) ? null : reader.GetString("urlPortada"),
 							IdPropietario = reader.GetInt32("idPropietario"),
 							Propietario = new Propietario
 							{

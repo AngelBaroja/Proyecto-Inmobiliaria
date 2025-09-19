@@ -39,7 +39,7 @@
                         <img src="@img.Url" class="img-thumbnail" style="max-width:150px;" />
                         <button type="button" class="btn btn-danger btn-sm btn-eliminar-imagen"
                                 onclick="eliminarImagen(@img.Id)">
-                            <i class="fas fa-times"></i>
+                            <i class="fa fa-close"></i>
                         </button>
                     </div>
                 }
@@ -51,14 +51,37 @@
         </div>
 
         <form id="formInterior" enctype="multipart/form-data" onsubmit="subirImagenes(event)">
-            <input type="file" id="imagenes" name="imagenes" multiple class="form-control" required />
+            <input type="file" id="imagenes" name="imagenes" onchange="previsualizar(event)" accept="image/*" multiple class="form-control" required />            
             <button type="submit" class="btn btn-success mt-2">Subir</button>
         </form>
+
+        <div class="mt-3">
+            <h6>Previsualización:</h6>
+            <div id="preview" class="d-flex flex-wrap"></div>
+        </div>
     </div>
 </div>
 
 @section Scripts {
 <script>
+    function previsualizar(event) {
+        $('#preview').empty();
+        const files = event.target.files;
+        if (!files) return;
+        //Iterar sobre los archivos seleccionados
+        [...files].forEach(file => {
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                $('#preview').append(`
+                    <div class="m-2">
+                        <img src="${e.target.result}" class="img-thumbnail" style="max-width: 150px; max-height: 150px;" />
+                    </div>
+                `);
+            };
+            reader.readAsDataURL(file);
+        });
+    }
+
     function subirImagenes(e) {
         e.preventDefault();
 
