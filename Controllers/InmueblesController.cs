@@ -3,9 +3,11 @@ using Proyecto_Inmobiliaria.Models;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Proyecto_Inmobiliaria.Controllers 
 {
+    [Authorize]
     public class InmueblesController : Controller
     {
         private readonly IRepositorioInmueble repositorioInmueble;
@@ -215,7 +217,7 @@ namespace Proyecto_Inmobiliaria.Controllers
                 return RedirectToAction(nameof(Imagenes), new { id = InmuebleId });
             }
         }
-        
+
         // GET: Inmuebles/PorPropietario/5
         public IActionResult PorPropietario(int id)
         {

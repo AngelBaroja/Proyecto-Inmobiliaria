@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Proyecto_Inmobiliaria.Models;
 using System.Collections.Generic;
@@ -5,6 +6,7 @@ using System.Linq;
 
 namespace Proyecto_Inmobiliaria.Controllers
 {
+    [Authorize]
     public class PropietariosController : Controller
     {
         private readonly IRepositorioPropietario repositorioPropietario;
@@ -123,8 +125,8 @@ namespace Proyecto_Inmobiliaria.Controllers
                         // 3. Eliminar el inmueble
                         repositorioInmueble.Baja(inmueble.Id);
                     }
-                } 
-                
+                }
+
                 // 5. Eliminar el Propietario
                 repositorioPropietario.Baja(id);
 
@@ -137,7 +139,7 @@ namespace Proyecto_Inmobiliaria.Controllers
 
             return RedirectToAction(nameof(Index));
         }
-        
+
         [HttpGet]
         public IActionResult BuscarPorNombre(string q)
         {

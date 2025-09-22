@@ -1,9 +1,9 @@
 using System.Diagnostics;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Proyecto_Inmobiliaria.Models;
 
 namespace Proyecto_Inmobiliaria.Controllers;
-
 public class HomeController : Controller
 {
     private readonly ILogger<HomeController> _logger;
@@ -12,16 +12,17 @@ public class HomeController : Controller
     {
         _logger = logger;
     }
-
+    [Authorize]
     public IActionResult Index()
     {
         return View();
     }
-
-    public IActionResult Privacy()
+    [AllowAnonymous]
+    public ActionResult Restringido()
     {
         return View();
     }
+
 
     [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
     public IActionResult Error()

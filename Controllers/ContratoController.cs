@@ -1,8 +1,10 @@
 using Proyecto_Inmobiliaria.Models;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Proyecto_Inmobiliaria.Controllers
 {
+    [Authorize]
     public class ContratoController : Controller
     {
         private readonly RepositorioContrato repositorio;
@@ -16,15 +18,15 @@ namespace Proyecto_Inmobiliaria.Controllers
             this.rinm = new RepositorioInmueble(config);
         }
         [HttpGet]
-        public ActionResult Index(int pagina=1 )
+        public ActionResult Index(int pagina = 1)
         {
             try
             {
                 var tamaño = 5;
-				var lista = repositorio.ObtenerTodos(Math.Max(pagina, 1), tamaño);
-				ViewBag.Pagina = pagina;
-				var total = repositorio.ObtenerCantidad();
-				ViewBag.TotalPaginas = total % tamaño == 0 ? total / tamaño : total / tamaño + 1;
+                var lista = repositorio.ObtenerTodos(Math.Max(pagina, 1), tamaño);
+                ViewBag.Pagina = pagina;
+                var total = repositorio.ObtenerCantidad();
+                ViewBag.TotalPaginas = total % tamaño == 0 ? total / tamaño : total / tamaño + 1;
 
                 foreach (var contrato in lista)
                 {
