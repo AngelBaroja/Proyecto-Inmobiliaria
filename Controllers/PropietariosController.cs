@@ -85,16 +85,35 @@ namespace Proyecto_Inmobiliaria.Controllers
             int id,
             [FromServices] IRepositorioInmueble repositorioInmueble,
             [FromServices] IRepositorioImagen repoImagen,
-            [FromServices] IWebHostEnvironment environment
+            [FromServices] IWebHostEnvironment environment,
+            [FromServices] IRepositorioContrato repoContrato
             )
         {
             try
             {
+                // 0. Verificar si el propietario tiene contratos activos en uno de sus Inmuebles
                 var inmuebles = repositorioInmueble.BuscarPorPropietario(id);
                 if (inmuebles != null || inmuebles.Any())
                 {
                     foreach (var inmueble in inmuebles)
                     {
+                        var contratoActivo = repoContrato.ObtenerPorInmueble(inmueble.Id);
+                        if (contratoActivo != null)
+                        {
+                            // Guardar mensaje en TempData
+                            TempData["Error"] = $"No se puede eliminar el propietario porque su inmueble ID:{inmueble.Id}, en la direccion; {inmueble.Direccion}, tiene un contrato vigente.";
+
+                            // Redirigir a la vista Eliminar del Propietario
+                            return RedirectToAction("Eliminar", "Propietarios", new {id});
+                        }
+                    }
+                }
+                // Si no hay contratos activos => eliminar 
+                if (inmuebles != null || inmuebles.Any())
+                {
+                    foreach (var inmueble in inmuebles)
+                    {
+                                                
                         // 1. Eliminar portada si existe
                         if (!string.IsNullOrEmpty(inmueble.UrlPortada))
                         {

@@ -2,7 +2,7 @@ using System.Data;
 using Proyecto_Inmobiliaria.Models;
 using MySql.Data.MySqlClient;
 
-public class RepositorioContrato : RepositorioBase
+public class RepositorioContrato : RepositorioBase, IRepositorioContrato
 {
     public RepositorioContrato(IConfiguration configuration) : base(configuration)
     {
@@ -82,7 +82,51 @@ public class RepositorioContrato : RepositorioBase
         }
         return res;
     }
-    public IList<Contrato> ObtenerTodos(int paginaNro = 1, int tamPagina = 10)
+
+    public IList<Contrato> ObtenerTodos()
+    {
+        IList<Contrato> res = new List<Contrato>();
+        using (var connection = new MySqlConnection(connectionString))
+        {
+            string sql = @$"SELECT c.*, i.nombre, i.apellido, m.direccion FROM contratos c
+                        INNER JOIN inquilinos i ON c.idInquilino = i.id
+                        INNER JOIN inmuebles m ON c.idInmueble = m.id";
+
+            using (var command = new MySqlCommand(sql, connection))
+            {
+                command.CommandType = CommandType.Text;
+                connection.Open();
+                var reader = command.ExecuteReader();
+                while (reader.Read())
+                {
+                    Contrato p = new Contrato
+                    {
+                        id = reader.GetInt32(nameof(Contrato.id)),
+                        FechaInicio = reader.GetDateTime("fechaInicio"),
+                        FechaFin = reader.GetDateTime("fechaFin"),
+                        Monto = reader.GetDecimal("monto"),
+                        idInquilino = reader.GetInt32("idInquilino"),
+                        idInmueble = reader.GetInt32("idInmueble"),
+                        Estado = reader.GetBoolean("estado"),
+                        Inquilino = new Inquilino
+                        {
+                            Nombre = reader.GetString("nombre"),
+                            Apellido = reader.GetString("apellido")
+                        },
+                        Inmueble = new Inmueble
+                        {
+                            Direccion = reader.GetString("direccion")
+                        }
+                    };
+                    res.Add(p);
+                }
+                connection.Close();
+            }
+        }
+        return res;
+    }
+
+    public IList<Contrato> ObtenerTodosPaginado(int paginaNro = 1, int tamPagina = 10)
     {
         IList<Contrato> res = new List<Contrato>();
         using (var connection = new MySqlConnection(connectionString))
@@ -181,5 +225,41 @@ public class RepositorioContrato : RepositorioBase
             }
         }
         return res;
+    }
+
+    public Contrato? ObtenerPorInmueble(int idInmueble)
+    {
+        Contrato? contrato = null;
+        using (var connection = new MySqlConnection(connectionString))
+        {
+            string sql = @"SELECT id, fechaInicio, fechaFin, monto, idInquilino, idInmueble, estado
+                           FROM contratos
+                           WHERE idInmueble = @idInmueble
+                             AND fechaFin > @hoy
+                           LIMIT 1";
+            using (var command = new MySqlCommand(sql, connection))
+            {
+                command.Parameters.AddWithValue("@idInmueble", idInmueble);
+                command.Parameters.AddWithValue("@hoy", DateTime.Today);
+                command.CommandType = CommandType.Text;
+                connection.Open();
+                var reader = command.ExecuteReader();
+                if (reader.Read())
+                {
+                    contrato = new Contrato
+                    {
+                        id = reader.GetInt32(nameof(Contrato.id)),
+                        FechaInicio = reader.GetDateTime("fechaInicio"),
+                        FechaFin = reader.GetDateTime("fechaFin"),
+                        Monto = reader.GetDecimal("monto"),
+                        idInquilino = reader.GetInt32("idInquilino"),
+                        idInmueble = reader.GetInt32("idInmueble"),
+                        Estado = reader.GetBoolean("estado")
+                    };
+                }
+                connection.Close();
+            }
+        }
+        return contrato;
     }
 }

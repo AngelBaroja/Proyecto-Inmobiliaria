@@ -44,10 +44,15 @@
             @Html.DisplayFor(model => model.Estado)
         </dd>
     </dl>
-    
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger">
+            @TempData["Error"]
+        </div>
+    }
     <form asp-action="Eliminar">
         <input type="hidden" asp-for="Id" />
-        <input type="submit" value="Eliminar" class="btn btn-danger" /> |
+        <input type="submit" value="Eliminar" class="btn btn-danger" /> 
         <a asp-action="Index" class="text-volver">Volver a la lista</a>
     </form>
 </div>

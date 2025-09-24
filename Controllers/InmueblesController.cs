@@ -110,26 +110,37 @@ namespace Proyecto_Inmobiliaria.Controllers
         public IActionResult EliminarConfirmed(
             int id,
             [FromServices] IRepositorioImagen repoImagen,
-            [FromServices] IWebHostEnvironment environment)
+            [FromServices] IWebHostEnvironment environment,
+            [FromServices] IRepositorioContrato repoContrato)
         {
             try
             {
-                // 1. Traer el inmueble
+                // 0. Traer el inmueble
                 var inmueble = repositorioInmueble.ObtenerPorId(id);
 
                 if (inmueble == null)
+                { 
                     return NotFound();
+                }
+                // 1. Verificar si el Inmuble tiene contratos activos
+                var contratoActivo = repoContrato.ObtenerPorInmueble(id);
+                if (contratoActivo != null)
+                {
+                    TempData["Error"] = $"No se puede eliminar el inmueble porque tiene un contrato vigente.";
+                    // Redirigir a la vista Eliminar del Inmueble
+                    return RedirectToAction("Eliminar", "Inmuebles", new {id});
+                }   
 
                 // 2. Eliminar portada si existe
-                if (!string.IsNullOrEmpty(inmueble.UrlPortada))
-                {
-                    string rutaPortada = Path.Combine(environment.WebRootPath,
-                        inmueble.UrlPortada.TrimStart('/').Replace("/", Path.DirectorySeparatorChar.ToString()));
-                    if (System.IO.File.Exists(rutaPortada))
+                    if (!string.IsNullOrEmpty(inmueble.UrlPortada))
                     {
-                        System.IO.File.Delete(rutaPortada);
+                        string rutaPortada = Path.Combine(environment.WebRootPath,
+                            inmueble.UrlPortada.TrimStart('/').Replace("/", Path.DirectorySeparatorChar.ToString()));
+                        if (System.IO.File.Exists(rutaPortada))
+                        {
+                            System.IO.File.Delete(rutaPortada);
+                        }
                     }
-                }
 
                 // 3. Eliminar imágenes interiores
                 var imagenes = repoImagen.BuscarPorInmueble(id);
