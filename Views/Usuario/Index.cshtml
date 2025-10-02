@@ -1,6 +1,10 @@
-@model IEnumerable<Usuario>
+@model IEnumerable<Proyecto_Inmobiliaria.Models.Usuario>
+
 @{
     ViewData["Title"] = "Usuarios";
+    var rnd = new Random();
+	var Pagina = ViewBag.Pagina ?? 1;
+    var TotalPaginas = ViewBag.TotalPaginas ?? 1;
 }
 
 
@@ -62,35 +66,78 @@
                         @Html.DisplayFor(modelItem => item.Email)
                     </td>
                     <td>
-                        @if (item.Avatar != null)
+                        @if (!string.IsNullOrEmpty(item.Avatar))
                         {
-                            <img width="32" src="@item.Avatar" alt="User Avatar" />
+                            <img width="45" height="45" style="border-radius:50px; border:solid 3px black;" src="@item.Avatar" alt="Img.Avatar" />
                         }
                         else
                         {
-                            <p>Sin avatar</p>
+                            <img width="45" height="45" style="border-radius:50px; border:solid 3px black;" src="/Uploads/Avatares\usuarioSinImagen.png" alt="Sin Avatar" />
                         }
                     </td>
                     <td>
                         @Html.DisplayFor(modelItem => item.RolNombre)
                     </td>
                     <td>
-                        <a asp-action="Editar" asp-route-id="@item.id" title="Editar"><span
-                                class="fa fa-edit"></span></a>
-                        <a asp-action="Detalle" asp-route-id="@item.id" title="DetalleUsuario"><span
-                                class="fa fa-info"></span></a>
-                        @if (User.IsInRole("Administrador")){
-
-                            <a asp-action="Eliminar" asp-route-id="@item.id" title="Eliminar"
-                                onclick="return confirm('¿Estás seguro de eliminar a @item.Nombre @item.Apellido?');"><span
-                                    class="fa fa-trash text-danger"></span></a>
-                        }
+                        <div class="btn-group" role="group">
+                            <a class="btn btn-primary" asp-action="Editar" asp-route-id="@item.id" title="Editar"><span
+                                    class="fa fa-edit"></span></a>                           
+                            <a class="btn btn-secondary" asp-action="Detalle" asp-route-id="@item.id" title="DetalleUsuario"><span
+                                    class="fa fa-info"></span></a>
+                            @if (User.IsInRole("Administrador")){
+                                <a class="btn btn-danger" asp-action="Eliminar" asp-route-id="@item.id" title="Eliminar"><span class="fa fa-trash"></span></a>
+                            }                            
+                        </div>
                     </td>
                 </tr>
             }
         </tbody>
     </table>
 </div>
+
+<!-- Paginacion -->
+<nav aria-label="Page navigation">
+	<ul class="pagination">
+		<!-- Botón "Anterior" -->
+		@if (Pagina > 1)
+		{
+			<li class="page-item">
+				<a class="page-link" asp-action="Index" asp-controller="Usuario" asp-route-pagina="@(Pagina - 1)">
+    				<i class="fa fa-arrow-left"></i>
+				</a>
+			</li>
+		}
+		else
+		{
+			<li class="page-item disabled">
+				<span class="page-link"><i class="fa-solid fa-angles-left"></i></span>
+			</li>
+		}
+
+		<!-- Números de página -->
+		@for (int i = 1; i <= TotalPaginas; i++)
+		{
+			<li class="page-item @(i == Pagina ? "active" : "")">
+				<a class="page-link" asp-action="Index" asp-controller="Usuario" asp-route-pagina="@i">@i</a>
+			</li>
+		}
+		<!-- Botón "Siguiente" -->
+		@if (Pagina < TotalPaginas)
+		{
+			<li class="page-item">
+				<a class="page-link" asp-action="Index" asp-controller="Usuario" asp-route-pagina="@(Pagina + 1)" aria-label="Siguiente">
+					<i class="fa fa-arrow-right"></i>
+				</a>
+			</li>
+		}
+		else
+		{
+			<li class="page-item disabled">
+				<span class="page-link"><i class="fa-solid fa-angles-right"></i></span>
+			</li>
+		}		
+	</ul>
+</nav>
 
 @section Scripts {
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>

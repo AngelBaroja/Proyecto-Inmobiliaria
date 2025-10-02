@@ -21,23 +21,42 @@ namespace Proyecto_Inmobiliaria.Controllers
             this.environment = environment;
             this.repositorio = repositorio;
         }
-        // GET: Usuarios
+        // GET: Usuario
         [Authorize(Policy = "Administrador")]
-        public ActionResult Index()
-        {
-            var usuarios = repositorio.ObtenerTodos();
-            return View(usuarios);
+        public ActionResult Index(int? pagina = 1)
+        {     
+
+            var usuarios = repositorio.ObtenerTodos().OrderBy(i => i.id);
+
+            int pageNumber = pagina ?? 1; // Si pagina es null, usar 1
+            int pageSize = 5;
+
+            int totalPaginas = (int)Math.Ceiling((double)usuarios.Count() / pageSize);
+
+            ViewBag.Pagina = pageNumber;
+            ViewBag.TotalPaginas = totalPaginas;
+
+            var usuariosPaginados = usuarios
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .ToList();
+
+
+            return View(usuariosPaginados);
         }
 
-        // GET: Usuarios/Details/5
+        // GET: Usuario/Detalle/5
         [Authorize(Policy = "Administrador")]
-        public ActionResult Details(int id)
+        public ActionResult Detalle(int id)
         {
-            var e = repositorio.ObtenerPorId(id);
-            return View(e);
+            ViewData["Title"] = "Detalle del Usuario";
+            if (User.Identity?.Name == null)
+                return RedirectToAction("Login");
+            var u = repositorio.ObtenerPorId(id);
+            return View("Detalle", u);
         }
 
-        // GET: Usuarios/Create
+        // GET: Usuario/Create
         [Authorize(Policy = "Administrador")]
         public ActionResult Crear()
         {
@@ -45,7 +64,7 @@ namespace Proyecto_Inmobiliaria.Controllers
             return View();
         }
 
-        // POST: Usuarios/Create
+        // POST: Usuario/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize(Policy = "Administrador")]
@@ -63,7 +82,7 @@ namespace Proyecto_Inmobiliaria.Controllers
                 if (u.AvatarFile != null && u.id > 0)
                 {
                     string wwwPath = environment.WebRootPath;
-                    string path = Path.Combine(wwwPath, "Uploads");
+                    string path = Path.Combine(wwwPath, "Uploads", "Avatares");
                     if (!Directory.Exists(path))
                     {
                         Directory.CreateDirectory(path);
@@ -71,12 +90,12 @@ namespace Proyecto_Inmobiliaria.Controllers
                     //Path.GetFileName(u.AvatarFile.FileName);//este nombre se puede repetir
                     string fileName = "avatar_" + u.id + Path.GetExtension(u.AvatarFile.FileName);
                     string pathCompleto = Path.Combine(path, fileName);
-                    u.Avatar = Path.Combine("/Uploads", fileName);
+                    u.Avatar = Path.Combine("/Uploads/Avatares", fileName);
                     // Esta operación guarda la foto en memoria en la ruta que necesitamos
                     using (FileStream stream = new FileStream(pathCompleto, FileMode.Create))
                     {
                         u.AvatarFile.CopyTo(stream);
-                    }
+                    }                    
                     repositorio.Modificacion(u);
                 }
                 return RedirectToAction(nameof(Index));
@@ -89,7 +108,7 @@ namespace Proyecto_Inmobiliaria.Controllers
             }
         }
 
-        // GET: Usuarios/Edit/5
+        // GET: Usuario/Edit/5
         [Authorize]
         public ActionResult Perfil()
         {
@@ -101,71 +120,143 @@ namespace Proyecto_Inmobiliaria.Controllers
             return View("Edit", u);
         }
 
-        // GET: Usuarios/Edit/5
+        // GET: Usuario/Edit/5
         [Authorize(Policy = "Administrador")]
-        public ActionResult Edit(int id)
+        public ActionResult Editar(int id)
         {
             ViewData["Title"] = "Editar usuario";
             var u = repositorio.ObtenerPorId(id);
             ViewBag.Roles = Usuario.ObtenerRoles();
             return View(u);
         }
+      
 
-        // POST: Usuarios/Edit/5
+        // POST: Usuario/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize]
-        public ActionResult Edit(int id, Usuario u)
+        public ActionResult Editar(int id, Usuario u)
         {
-            var vista = nameof(Edit);//de que vista provengo
+            var vista = nameof(Editar);
             try
             {
-                if (!User.IsInRole("Administrador"))//no soy admin
+                // Validaciones de seguridad
+                if (!User.IsInRole("Administrador"))
                 {
-                    vista = nameof(Perfil);//solo puedo ver mi perfil
+                    vista = nameof(Perfil);
                     if (User.Identity?.Name == null) return RedirectToAction("Login");
                     var usuarioActual = repositorio.ObtenerPorEmail(User.Identity.Name);
-                    if (usuarioActual.id != id)//si no es admin, solo puede modificarse él mismo
+                    if (usuarioActual.id != id)
                         return RedirectToAction(nameof(Index), "Home");
                 }
-                // TODO: Add update logic here
 
-                return RedirectToAction(vista);
+                var usuarioBD = repositorio.ObtenerPorId(id);
+                if (usuarioBD == null) return NotFound();
+
+                // Si viene una nueva imagen, reemplazo
+                if (u.AvatarFile != null)
+                {
+                    if (!string.IsNullOrEmpty(usuarioBD.Avatar))
+                    {
+                        string rutaEliminar = Path.Combine(environment.WebRootPath,
+                            usuarioBD.Avatar.TrimStart('/').Replace("/", Path.DirectorySeparatorChar.ToString()));
+                        if (System.IO.File.Exists(rutaEliminar))
+                            System.IO.File.Delete(rutaEliminar);
+                    }
+
+                    string wwwPath = environment.WebRootPath;
+                    string path = Path.Combine(wwwPath, "Uploads", "Avatares");
+                    if (!Directory.Exists(path))
+                        Directory.CreateDirectory(path);
+
+                    string fileName = $"avatar_{u.id}_{Guid.NewGuid()}{Path.GetExtension(u.AvatarFile.FileName)}";
+                    string pathCompleto = Path.Combine(path, fileName);
+
+                    using (FileStream stream = new FileStream(pathCompleto, FileMode.Create))
+                    {
+                        u.AvatarFile.CopyTo(stream);
+                    }
+
+                    u.Avatar = Path.Combine("/Uploads/Avatares", fileName);
+                }
+                else
+                {
+                    // Mantener el avatar anterior
+                    u.Avatar = usuarioBD.Avatar;
+                }
+
+                u.id = id;
+                string hashed = Hasheo(u.Clave);
+                u.Clave = hashed;
+                u.Rol = User.IsInRole("Administrador") ? u.Rol : (int)Usuario.enRoles.Empleado;
+                var nbreRnd = Guid.NewGuid();//posible nombre aleatorio
+                repositorio.Modificacion(u);
+
+                return RedirectToAction(nameof(Index));
             }
             catch (Exception ex)
-            {//colocar breakpoints en la siguiente línea por si algo falla
+            {
                 Console.WriteLine(ex.Message);
-                throw;
+                ViewBag.Roles = Usuario.ObtenerRoles();
+                return View(vista, u);
             }
         }
 
-        // GET: Usuarios/Delete/5
+
+        // GET: Usuarios/Eliminar/5
         [Authorize(Policy = "Administrador")]
-        public ActionResult Delete(int id)
+        public ActionResult Eliminar(int id)
         {
-            // TODO: Add delete logic here
-            throw new NotImplementedException();
+            
+            var usuario = repositorio.ObtenerPorId(id);           
+            return View(usuario);
         }
 
-        // POST: Usuarios/Delete/5
+        // POST: Usuarios/EliminarConfirmado/5
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize(Policy = "Administrador")]
-        public ActionResult Delete(int id, Usuario usuario)
+        public ActionResult EliminarConfirmado(int id)
         {
             try
             {
-                var ruta = Path.Combine(environment.WebRootPath, "Uploads", $"avatar_{id}" + Path.GetExtension(usuario.Avatar));
-                if (System.IO.File.Exists(ruta))
-                    System.IO.File.Delete(ruta);
+                var usuario = repositorio.ObtenerPorId(id);               
+
+                // Si el usuario es Administrador
+                if (usuario.Rol == (int)Usuario.enRoles.Administrador)
+                {
+                    // Contar cuántos administradores hay en total
+                    var cantidadAdmins = repositorio.ObtenerTodos()
+                        .Count(u => u.Rol == (int)Usuario.enRoles.Administrador);
+
+                    if (cantidadAdmins <= 1)
+                    {
+                        // Si es el único administrador → no permitir borrar
+                        TempData["Error"] = "No se puede eliminar este usuario porque es el único administrador.";
+                        return RedirectToAction(nameof(Eliminar), new { id });
+                    }
+                }
+
+                // Eliminar avatar 
+                if (!string.IsNullOrEmpty(usuario.Avatar))
+                {
+                    string ruta = Path.Combine(environment.WebRootPath, usuario.Avatar.TrimStart('/').Replace("/", Path.DirectorySeparatorChar.ToString()));
+                    if (System.IO.File.Exists(ruta))
+                        System.IO.File.Delete(ruta);
+                }
+
+                // Eliminar de la base
                 repositorio.Baja(id);
+
                 return RedirectToAction(nameof(Index));
             }
-            catch
+            catch (Exception ex)
             {
-                return View();
+                TempData["Error"] = "Ocurrió un error al intentar eliminar el usuario: " + ex.Message;
+                return RedirectToAction(nameof(Eliminar), new { id });
             }
         }
+
 
         [Authorize]
         public IActionResult Avatar()

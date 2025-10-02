@@ -18,10 +18,26 @@ namespace Proyecto_Inmobiliaria.Controllers
         }
 
         // GET: Propietarios
-        public IActionResult Index()
-        {
-            var propietarios = repositorioPropietario.ObtenerTodos();
-            return View(propietarios);
+        public ActionResult Index(int? pagina = 1)
+        {     
+
+            var propietarios = repositorioPropietario.ObtenerTodos().OrderBy(i => i.Id);
+
+            int pageNumber = pagina ?? 1; // Si pagina es null, usar 1
+            int pageSize = 5;
+
+            int totalPaginas = (int)Math.Ceiling((double)propietarios.Count() / pageSize);
+
+            ViewBag.Pagina = pageNumber;
+            ViewBag.TotalPaginas = totalPaginas;
+
+            var propietariosPaginados = propietarios
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .ToList();
+
+
+            return View(propietariosPaginados);
         }
 
         // GET: Propietarios/Create
@@ -72,6 +88,7 @@ namespace Proyecto_Inmobiliaria.Controllers
         }
 
         // GET: Propietarios/Eliminar/5
+        [Authorize(Policy = "Administrador")]
         public IActionResult Eliminar(int id)
         {
             var propietario = repositorioPropietario.ObtenerPorId(id);
@@ -81,6 +98,7 @@ namespace Proyecto_Inmobiliaria.Controllers
         // POST: Propietarios/Eliminar/{id}
         [HttpPost, ActionName("Eliminar")]
         [ValidateAntiForgeryToken]
+        [Authorize(Policy = "Administrador")]
         public IActionResult EliminarConfirmed(
             int id,
             [FromServices] IRepositorioInmueble repositorioInmueble,
@@ -104,7 +122,7 @@ namespace Proyecto_Inmobiliaria.Controllers
                             TempData["Error"] = $"No se puede eliminar el propietario porque su inmueble ID:{inmueble.Id}, en la direccion; {inmueble.Direccion}, tiene un contrato vigente.";
 
                             // Redirigir a la vista Eliminar del Propietario
-                            return RedirectToAction("Eliminar", "Propietarios", new {id});
+                            return RedirectToAction("Eliminar", "Propietarios", new { id });
                         }
                     }
                 }
@@ -113,7 +131,7 @@ namespace Proyecto_Inmobiliaria.Controllers
                 {
                     foreach (var inmueble in inmuebles)
                     {
-                                                
+
                         // 1. Eliminar portada si existe
                         if (!string.IsNullOrEmpty(inmueble.UrlPortada))
                         {

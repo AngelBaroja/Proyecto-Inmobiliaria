@@ -53,7 +53,7 @@ body {
     position: absolute;
     top: 5px;
     right: 5px;
-    display: none;
+    display: none;    
 }
 
 .imagen-con-hover:hover .btn-eliminar-imagen {

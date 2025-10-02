@@ -6,14 +6,14 @@
 
 <div class="container mt-5">
     <h4 class="text-primary text-center">
-        @(id == 0 ? "Crear Inquilino" : "Detalles del Inquilino")
+        @(id == 0 ? "Crear Inquilino" : "Modificar Inquilino")
     </h4>
     <hr class="mb-4" />
     <div class="row justify-content-center">
         <div class="col-md-6">
             <div class="card shadow">
                 <div class="card-body">
-                    <form asp-action="Guardar" method="post">
+                    <form asp-action="Guardar" method="post" novalidate>
                         <div asp-validation-summary="ModelOnly" class="text-danger text-center mb-3"></div>
 
                         @if (id != 0)
@@ -47,8 +47,7 @@
 
                         <div class="form-group mb-3">
                             <label asp-for="Telefono" class="form-label">Teléfono</label>
-                            <input asp-for="Telefono" class="form-control" required pattern="^[\d+\-]+$"
-                                title="El Teléfono debe contener solo números y guiones" />
+                            <input asp-for="Telefono" class="form-control"/>
                             <span asp-validation-for="Telefono" class="text-danger"></span>
                         </div>
 
@@ -73,3 +72,6 @@
         <a asp-action="Index" class="btn btn-secondary">Volver</a>
     </div>
 </div>
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

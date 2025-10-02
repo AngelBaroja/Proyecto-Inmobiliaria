@@ -19,7 +19,7 @@ namespace Proyecto_Inmobiliaria.Models
                 string sql = @"INSERT INTO Usuarios 
 					(Nombre, Apellido, Avatar, Email, Clave, Rol) 
 					VALUES (@nombre, @apellido, @avatar, @email, @clave, @rol);
-					SELECT SCOPE_IDENTITY();";//devuelve el id insertado (LAST_INSERT_ID para mysql)
+					SELECT LAST_INSERT_ID();";
                 using (var command = new MySqlCommand(sql, connection))
                 {
                     command.CommandType = CommandType.Text;
