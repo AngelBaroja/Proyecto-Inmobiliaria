@@ -37,7 +37,7 @@ namespace Proyecto_Inmobiliaria.Models
 		[Display(Name = "Dueño")]
 		[Required(ErrorMessage = "Debe agregar un propietario")]
 		public int IdPropietario { get; set; }
-		[ForeignKey(nameof(IdPropietario))]    
+		[ForeignKey(nameof(IdPropietario))]		 
 		public Propietario? Propietario { get; set; }	
 		public string? UrlPortada { get; set; }
 		[NotMapped]//Para EF
