@@ -9,5 +9,6 @@ namespace Proyecto_Inmobiliaria.Models
 	{
 		int ModificarPortada(int InmuebleId, string ruta);
 		IList<Inmueble> BuscarPorPropietario(int idPropietario);
+		IList<Inmueble> ObtenerDisponiblesPorFecha(DateTime fechaInicio, DateTime fechaFin);
 	}
 }

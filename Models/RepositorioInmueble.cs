@@ -282,52 +282,114 @@ namespace Proyecto_Inmobiliaria.Models
 			return res;
 		}
 		public IList<Inmueble> ObtenerDisponibles()
-        {
-            IList<Inmueble> res = new List<Inmueble>();
-            using (var connection = new MySqlConnection(connectionString))
-            {
-                string sql = @"SELECT i.id, i.direccion, i.uso, i.tipo, i.ambientes, i.superficie, i.latitud, i.longitud, i.estado, i.precio, i.idPropietario, 
+		{
+			IList<Inmueble> res = new List<Inmueble>();
+			using (var connection = new MySqlConnection(connectionString))
+			{
+				string sql = @"SELECT i.id, i.direccion, i.uso, i.tipo, i.ambientes, i.superficie, i.latitud, i.longitud, i.estado, i.precio, i.idPropietario, 
                             p.nombre, p.apellido, p.DNI
                             FROM Inmuebles i
 							INNER JOIN Propietarios p 
 							ON i.idPropietario = p.id
 							WHERE i.estado = 'Disponible'";
-                using (MySqlCommand command = new MySqlCommand(sql, connection))
-                {
-                    command.CommandType = CommandType.Text;
-                    connection.Open();
-                    var reader = command.ExecuteReader();
-                    while (reader.Read())
-                    {
-                        Inmueble entidad = new Inmueble
-                        {
-                            Id = reader.GetInt32(nameof(Inmueble.Id)),
-                            Direccion = reader[nameof(Inmueble.Direccion)] == DBNull.Value ? "" : reader.GetString(nameof(Inmueble.Direccion)),
-                            Ambientes = reader.GetInt32(nameof(Inmueble.Ambientes)),
-                            Uso = reader.GetString(nameof(Inmueble.Uso)),
-                            Tipo = reader.GetString(nameof(Inmueble.Tipo)),
-                            Superficie = reader.GetInt32(nameof(Inmueble.Superficie)),
-                            Latitud = reader.IsDBNull(reader.GetOrdinal(nameof(Inmueble.Latitud))) ? (decimal?)null : reader.GetDecimal(nameof(Inmueble.Latitud)),
-                            Longitud = reader.IsDBNull(reader.GetOrdinal(nameof(Inmueble.Longitud))) ? (decimal?)null : reader.GetDecimal(nameof(Inmueble.Longitud)),
-                            Estado = reader.GetString(nameof(Inmueble.Estado)),
+				using (MySqlCommand command = new MySqlCommand(sql, connection))
+				{
+					command.CommandType = CommandType.Text;
+					connection.Open();
+					var reader = command.ExecuteReader();
+					while (reader.Read())
+					{
+						Inmueble entidad = new Inmueble
+						{
+							Id = reader.GetInt32(nameof(Inmueble.Id)),
+							Direccion = reader[nameof(Inmueble.Direccion)] == DBNull.Value ? "" : reader.GetString(nameof(Inmueble.Direccion)),
+							Ambientes = reader.GetInt32(nameof(Inmueble.Ambientes)),
+							Uso = reader.GetString(nameof(Inmueble.Uso)),
+							Tipo = reader.GetString(nameof(Inmueble.Tipo)),
+							Superficie = reader.GetInt32(nameof(Inmueble.Superficie)),
+							Latitud = reader.IsDBNull(reader.GetOrdinal(nameof(Inmueble.Latitud))) ? (decimal?)null : reader.GetDecimal(nameof(Inmueble.Latitud)),
+							Longitud = reader.IsDBNull(reader.GetOrdinal(nameof(Inmueble.Longitud))) ? (decimal?)null : reader.GetDecimal(nameof(Inmueble.Longitud)),
+							Estado = reader.GetString(nameof(Inmueble.Estado)),
 							Precio = reader.GetInt32(nameof(Inmueble.Precio)),
-                            IdPropietario = reader.GetInt32(nameof(Inmueble.IdPropietario)),
+							IdPropietario = reader.GetInt32(nameof(Inmueble.IdPropietario)),
 							Propietario = new Propietario
 							{
 								Id = reader.GetInt32(nameof(Propietario.Id)),
 								Nombre = reader.GetString(nameof(Propietario.Nombre)),
 								Apellido = reader.GetString(nameof(Propietario.Apellido)),
 								Dni = reader.GetInt32(nameof(Propietario.Dni)),
-								
-                            }
-                        };
-                        res.Add(entidad);
-                    }
-                    connection.Close();
-                }
-            }
-            return res;
-        }
+
+							}
+						};
+						res.Add(entidad);
+					}
+					connection.Close();
+				}
+			}
+			return res;
+		}
+
+		public IList<Inmueble> ObtenerDisponiblesPorFecha(DateTime fechaInicio, DateTime fechaFin)
+		{
+			IList<Inmueble> res = new List<Inmueble>();
+			using (var connection = new MySqlConnection(connectionString))
+			{
+				string sql = @"
+					SELECT i.id, i.direccion, i.uso, i.tipo, i.ambientes, i.superficie, 
+						i.latitud, i.longitud, i.estado, i.precio, i.idPropietario,
+						p.nombre, p.apellido, p.DNI
+					FROM Inmuebles i
+					INNER JOIN Propietarios p ON i.idPropietario = p.id
+					WHERE i.estado = 'Disponible'
+					AND i.id NOT IN (
+						SELECT c.idInmueble
+						FROM Contratos c
+						WHERE c.estado = 1
+							AND (
+								(c.fechaInicio <= @fechaFin AND c.fechaFin >= @fechaInicio)
+							)
+					)";
+
+				using (MySqlCommand command = new MySqlCommand(sql, connection))
+				{
+					command.CommandType = CommandType.Text;
+					command.Parameters.AddWithValue("@fechaInicio", fechaInicio);
+					command.Parameters.AddWithValue("@fechaFin", fechaFin);
+					connection.Open();
+					var reader = command.ExecuteReader();
+					while (reader.Read())
+					{
+						Inmueble entidad = new Inmueble
+						{
+							Id = reader.GetInt32(nameof(Inmueble.Id)),
+							Direccion = reader[nameof(Inmueble.Direccion)] == DBNull.Value ? "" : reader.GetString(nameof(Inmueble.Direccion)),
+							Ambientes = reader.GetInt32(nameof(Inmueble.Ambientes)),
+							Uso = reader.GetString(nameof(Inmueble.Uso)),
+							Tipo = reader.GetString(nameof(Inmueble.Tipo)),
+							Superficie = reader.GetInt32(nameof(Inmueble.Superficie)),
+							Latitud = reader.IsDBNull(reader.GetOrdinal(nameof(Inmueble.Latitud))) ? (decimal?)null : reader.GetDecimal(nameof(Inmueble.Latitud)),
+							Longitud = reader.IsDBNull(reader.GetOrdinal(nameof(Inmueble.Longitud))) ? (decimal?)null : reader.GetDecimal(nameof(Inmueble.Longitud)),
+							Estado = reader.GetString(nameof(Inmueble.Estado)),
+							Precio = reader.GetInt32(nameof(Inmueble.Precio)),
+							IdPropietario = reader.GetInt32(nameof(Inmueble.IdPropietario)),
+							Propietario = new Propietario
+							{
+								Id = reader.GetInt32(nameof(Propietario.Id)),
+								Nombre = reader.GetString(nameof(Propietario.Nombre)),
+								Apellido = reader.GetString(nameof(Propietario.Apellido)),
+								Dni = reader.GetInt32(nameof(Propietario.Dni)),
+							}
+						};
+						res.Add(entidad);
+					}
+					connection.Close();
+				}
+			}
+			return res;
+		}
+
+
+
 	}
 	
 }

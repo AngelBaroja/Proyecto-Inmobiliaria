@@ -19,24 +19,40 @@ namespace Proyecto_Inmobiliaria.Controllers
         }
 
         // GET: Inmuebles
-        public IActionResult Index(int? pagina = 1)
+        public IActionResult Index(int? pagina = 1, DateTime? fechaInicio = null, DateTime? fechaFin = null)
         {
-            var inmuebles = repositorioInmueble.ObtenerTodos().OrderBy(i => i.Id);
+            IEnumerable<Inmueble> inmuebles;
 
-            int pageNumber = pagina ?? 1; // Si pagina es null, usar 1
+            if (fechaInicio.HasValue && fechaFin.HasValue)
+            {
+                // Buscar inmuebles disponibles en el rango de fechas
+                inmuebles = repositorioInmueble.ObtenerDisponiblesPorFecha(fechaInicio.Value, fechaFin.Value)
+                    .OrderBy(i => i.Id);
+            }
+            else
+            {
+                // Si no se ingresaron fechas
+                inmuebles = repositorioInmueble.ObtenerTodos()
+                    .OrderBy(i => i.Id);
+            }
+
+            int pageNumber = pagina ?? 1;
             int pageSize = 5;
 
             int totalPaginas = (int)Math.Ceiling((double)inmuebles.Count() / pageSize);
 
             ViewBag.Pagina = pageNumber;
             ViewBag.TotalPaginas = totalPaginas;
+            ViewBag.FechaInicio = fechaInicio?.ToString("yyyy-MM-dd");
+            ViewBag.FechaFin = fechaFin?.ToString("yyyy-MM-dd");
 
             var inmueblesPaginados = inmuebles
                 .Skip((pageNumber - 1) * pageSize)
                 .Take(pageSize);
 
             return View(inmueblesPaginados);
-        }
+        }      
+
 
         // GET: Inmuebles/Create
         public IActionResult Create()
