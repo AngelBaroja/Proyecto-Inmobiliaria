@@ -64,9 +64,16 @@
             </div>
         </div>
     </div>
+        @if (User?.IsInRole("Administrador") ?? true)
+        {
         <div class="text-center mt-4">
             <a asp-action="Index" class="text-volver">Volver a la lista</a>
         </div>
+        }else{
+            <div class="text-center mt-4">
+            <a asp-controller="Home" asp-action="Index" class="text-volver">Volver al Inicio</a>
+        </div>
+        }
     </div>  
 
 

@@ -108,34 +108,44 @@ namespace Proyecto_Inmobiliaria.Controllers
             }
         }
 
-        // GET: Usuario/Edit/5
+        // GET: Usuario/Perfil/
         [Authorize]
         public ActionResult Perfil()
         {
-            ViewData["Title"] = "Mi perfil";
-            if (User.Identity?.Name == null)
-                return RedirectToAction("Login");
-            var u = repositorio.ObtenerPorEmail(User.Identity.Name);
+            var idUsuarioClaim = User.FindFirst("IdUsuario")?.Value;
+            if (idUsuarioClaim == null || !int.TryParse(idUsuarioClaim, out var id))
+            {
+                return Unauthorized();
+            }
+
+            var u = repositorio.ObtenerPorId(id);
+            if (u == null)
+            {
+                return NotFound();
+            }
+
+            ViewData["Title"] = "Mi Perfil";
             ViewBag.Roles = Usuario.ObtenerRoles();
-            return View("Edit", u);
+            return View("Editar", u); // Reutiliza la vista Editar
         }
 
         // GET: Usuario/Edit/5
         [Authorize(Policy = "Administrador")]
         public ActionResult Editar(int id)
-        {
-            ViewData["Title"] = "Editar usuario";
+        {        
+            ViewData["Title"] = "Editar perfil";
             var u = repositorio.ObtenerPorId(id);
             ViewBag.Roles = Usuario.ObtenerRoles();
             return View(u);
         }
+
       
 
         // POST: Usuario/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize]
-        public ActionResult Editar(int id, Usuario u)
+        public async Task<ActionResult> Editar(int id, Usuario u)
         {
             var vista = nameof(Editar);
             try
@@ -192,7 +202,43 @@ namespace Proyecto_Inmobiliaria.Controllers
                 var nbreRnd = Guid.NewGuid();//posible nombre aleatorio
                 repositorio.Modificacion(u);
 
-                return RedirectToAction(nameof(Index));
+                // Actualizar la cookie de autenticación si el usuario editó su propio perfil
+                if (User.Identity != null && User.Identity.Name == usuarioBD.Email)
+                {
+                    // Crear nuevas claims con los datos actualizados
+                   var claims = new List<Claim>
+                    {
+                        new Claim(ClaimTypes.Name, u.Email),
+                        new Claim("FullName", u.Nombre + " " + u.Apellido),
+                        new Claim(ClaimTypes.Role, ((Usuario.enRoles)u.Rol).ToString()),
+                        new Claim("IdUsuario", u.id.ToString()),
+                        new Claim("Avatar", string.IsNullOrEmpty(u.Avatar) ? "/Uploads/Avatares/usuarioSinImagen.png" : u.Avatar.Replace('\\','/'))
+                    };
+
+
+                    var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+                    var authProperties = new AuthenticationProperties
+                    {
+                        IsPersistent = true // mantiene sesión iniciada
+                    };
+
+                    await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme); // cerrar la actual
+                    await HttpContext.SignInAsync(
+                        CookieAuthenticationDefaults.AuthenticationScheme,
+                        new ClaimsPrincipal(claimsIdentity),
+                        authProperties
+                    );
+                }
+
+                // Redirección según el rol
+                if (u.Rol == (int)Usuario.enRoles.Empleado)
+                {
+                    return RedirectToAction("Index", "Home");
+                }
+                else
+                {
+                    return RedirectToAction(nameof(Index));
+                }
             }
             catch (Exception ex)
             {
@@ -388,6 +434,7 @@ namespace Proyecto_Inmobiliaria.Controllers
                         new Claim(ClaimTypes.Name, e.Email),
                         new Claim("FullName", e.Nombre + " " + e.Apellido),
                         new Claim(ClaimTypes.Role, e.RolNombre),
+                        new Claim("IdUsuario", e.id.ToString()),
                         new Claim("Avatar", string.IsNullOrEmpty(e.Avatar) ? "/Uploads/Avatares/usuarioSinImagen.png" : e.Avatar.Replace('\\','/'))                    };
 
                     var claimsIdentity = new ClaimsIdentity(
