@@ -26,10 +26,12 @@ builder.Services.AddAuthorization(options =>
 
 });
 builder.Services.AddScoped<IRepositorioPropietario, RepositorioPropietario>();
+builder.Services.AddScoped<IRepositorioInquilino, RepositorioInquilino>();
 builder.Services.AddScoped<IRepositorioInmueble, RepositorioInmueble>();
 builder.Services.AddScoped<IRepositorioImagen, RepositorioImagen>();
 builder.Services.AddScoped<IRepositorioUsuario, RepositorioUsuario>();
 builder.Services.AddScoped<IRepositorioContrato, RepositorioContrato>();
+builder.Services.AddScoped<IRepositorioPago, RepositorioPago>();
 
 var app = builder.Build();
 

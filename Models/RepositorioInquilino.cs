@@ -3,7 +3,7 @@ using System.Data;
 using Proyecto_Inmobiliaria.Models;
 using MySql.Data.MySqlClient;
 
-public class RepositorioInquilino : RepositorioBase
+public class RepositorioInquilino : RepositorioBase, IRepositorioInquilino
 {
     public RepositorioInquilino(IConfiguration configuration) : base(configuration)
     {
@@ -77,7 +77,38 @@ public class RepositorioInquilino : RepositorioBase
         }
         return res;
     }
-    public IList<Inquilino> ObtenerTodos(int paginaNro = 1, int tamPagina = 10)
+    public IList<Inquilino> ObtenerTodos()
+    {
+        IList<Inquilino> res = new List<Inquilino>();
+        using (var connection = new MySqlConnection(connectionString))
+        {
+            string sql = @$"SELECT id, nombre, apellido, DNI, telefono, email, estado FROM inquilinos";
+
+            using (var command = new MySqlCommand(sql, connection))
+            {
+                command.CommandType = CommandType.Text;
+                connection.Open();
+                var reader = command.ExecuteReader();
+                while (reader.Read())
+                {
+                    Inquilino p = new Inquilino
+                    {
+                        id = reader.GetInt32(nameof(Inquilino.id)),
+                        Nombre = reader.GetString("nombre"),
+                        Apellido = reader.GetString("apellido"),
+                        DNI = reader.GetInt32("DNI"),
+                        Telefono = reader.GetString("telefono"),
+                        Email = reader.GetString("email"),
+                        Estado = reader.GetBoolean("estado")
+                    };
+                    res.Add(p);
+                }
+                connection.Close();
+            }
+        }
+        return res;
+    }
+    public IList<Inquilino> ObtenerLista(int paginaNro = 1, int tamPagina = 10)
     {
         IList<Inquilino> res = new List<Inquilino>();
         using (var connection = new MySqlConnection(connectionString))

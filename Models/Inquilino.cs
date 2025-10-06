@@ -30,6 +30,11 @@ namespace Proyecto_Inmobiliaria.Models
         public string Email { get; set; } = string.Empty;
         [Required]
         public bool Estado { get; set; }
+
+        public override string ToString()
+        {
+            return $"{Nombre} {Apellido} {DNI}";
+        }
         
 	}
 }

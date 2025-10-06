@@ -312,11 +312,13 @@ namespace Proyecto_Inmobiliaria.Controllers
             {
                 if (User.Identity?.Name == null) return RedirectToAction("Login");
                 var u = repositorio.ObtenerPorEmail(User.Identity.Name);
+                Console.WriteLine("Avatar: ", u.Avatar);
                 var stream = System.IO.File.Open(
                         Path.Combine(environment.WebRootPath, u.Avatar.Substring(1)),
                         FileMode.Open,
                         FileAccess.Read);
                 var ext = Path.GetExtension(u.Avatar);
+                
                 return new FileStreamResult(stream, $"image/{ext.Substring(1)}");
             }
             catch (Exception ex)
@@ -386,7 +388,7 @@ namespace Proyecto_Inmobiliaria.Controllers
                         new Claim(ClaimTypes.Name, e.Email),
                         new Claim("FullName", e.Nombre + " " + e.Apellido),
                         new Claim(ClaimTypes.Role, e.RolNombre),
-                    };
+                        new Claim("Avatar", string.IsNullOrEmpty(e.Avatar) ? "/Uploads/Avatares/usuarioSinImagen.png" : e.Avatar.Replace('\\','/'))                    };
 
                     var claimsIdentity = new ClaimsIdentity(
                             claims, CookieAuthenticationDefaults.AuthenticationScheme);

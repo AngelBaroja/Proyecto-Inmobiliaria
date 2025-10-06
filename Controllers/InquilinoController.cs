@@ -20,7 +20,7 @@ namespace Proyecto_Inmobiliaria.Controllers
             try
             {
                 var tamaño = 5;
-                var lista = repositorio.ObtenerTodos(Math.Max(pagina, 1), tamaño);
+                var lista = repositorio.ObtenerLista(Math.Max(pagina, 1), tamaño);
                 ViewBag.Pagina = pagina;
                 var total = repositorio.ObtenerCantidad();
                 ViewBag.TotalPaginas = total % tamaño == 0 ? total / tamaño : total / tamaño + 1;

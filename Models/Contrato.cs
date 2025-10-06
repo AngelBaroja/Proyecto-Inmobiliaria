@@ -13,6 +13,8 @@ namespace Proyecto_Inmobiliaria.Models
         public DateTime FechaInicio { get; set; }
         [Required]
         public DateTime FechaFin { get; set; }
+        [Display(Name = "Fecha de Terminación Efectiva")]
+        public DateTime? FechaTerminacionEfectiva { get; set; }
         [Required]
         public decimal Monto { get; set; }
         public int idInquilino { get; set; }
@@ -20,5 +22,12 @@ namespace Proyecto_Inmobiliaria.Models
         public bool Estado { get; set; }
         public Inquilino? Inquilino { get; set; }
         public Inmueble? Inmueble { get; set; }
+
+         public override string ToString()
+        {
+            return $"Contrato: {id} Inquilino: {Inquilino} Inmueble: {Inmueble} /MONTO: {Monto} ";
+        }
     }
+
+    
 }

@@ -29,12 +29,6 @@ public class RepositorioContrato : RepositorioBase, IRepositorioContrato
                 ;
                 res = Convert.ToInt32(command.ExecuteScalar());
                 p.id = res;
-                string updateInmueble = "UPDATE inmuebles SET estado = 'Ocupado' WHERE id = @idInmueble";
-                using (var updateCommand = new MySqlCommand(updateInmueble, connection))
-                {
-                    updateCommand.Parameters.AddWithValue("@idInmueble", p.idInmueble);
-                    updateCommand.ExecuteNonQuery();
-                }
                 connection.Close();
             }
         }
@@ -63,7 +57,7 @@ public class RepositorioContrato : RepositorioBase, IRepositorioContrato
         using (var connection = new MySqlConnection(connectionString))
         {
             string sql = @$"UPDATE contratos SET fechaInicio=@fechaInicio, fechaFin = @fechaFin, monto = @monto, idInquilino = @idInquilino,
-                        idInmueble = @idInmueble, estado = @estado WHERE {nameof(Contrato.id)} = @id;";
+                        idInmueble = @idInmueble, estado = @estado, fechaterminacionefectiva = @fechaterminacionefectiva WHERE {nameof(Contrato.id)} = @id;";
             using (var command = new MySqlCommand(sql, connection))
             {
                 command.CommandType = CommandType.Text;
@@ -73,6 +67,7 @@ public class RepositorioContrato : RepositorioBase, IRepositorioContrato
                 command.Parameters.AddWithValue("@idInquilino", p.idInquilino);
                 command.Parameters.AddWithValue("@idInmueble", p.idInmueble);
                 command.Parameters.AddWithValue("@estado", p.Estado);
+                command.Parameters.AddWithValue("@fechaterminacionefectiva", p.FechaTerminacionEfectiva);
                 command.Parameters.AddWithValue("@id", p.id);
                 connection.Open();
                 res = command.ExecuteNonQuery();
@@ -108,6 +103,9 @@ public class RepositorioContrato : RepositorioBase, IRepositorioContrato
                         idInquilino = reader.GetInt32("idInquilino"),
                         idInmueble = reader.GetInt32("idInmueble"),
                         Estado = reader.GetBoolean("estado"),
+                        FechaTerminacionEfectiva = reader.IsDBNull(reader.GetOrdinal("fechaterminacionefectiva"))
+                            ? (DateTime?)null
+                            : reader.GetDateTime("fechaterminacionefectiva"),
                         Inquilino = new Inquilino
                         {
                             Nombre = reader.GetString("nombre"),
@@ -152,6 +150,9 @@ public class RepositorioContrato : RepositorioBase, IRepositorioContrato
                         idInquilino = reader.GetInt32("idInquilino"),
                         idInmueble = reader.GetInt32("idInmueble"),
                         Estado = reader.GetBoolean("estado"),
+                        FechaTerminacionEfectiva = reader.IsDBNull(reader.GetOrdinal("fechaterminacionefectiva"))
+                            ? (DateTime?)null
+                            : reader.GetDateTime("fechaterminacionefectiva"),
                         Inquilino = new Inquilino
                         {
                             Nombre = reader.GetString("nombre"),
@@ -175,10 +176,10 @@ public class RepositorioContrato : RepositorioBase, IRepositorioContrato
         Contrato? p = null;
         using (var connection = new MySqlConnection(connectionString))
         {
-            string sql = @"SELECT 
-					id, fechaInicio, fechaFin, monto, idInquilino, idInmueble, estado
-					FROM contratos
-					WHERE id=@id";
+            string sql = @$"SELECT c.*, i.nombre, i.apellido, m.direccion FROM contratos c
+                        INNER JOIN inquilinos i ON c.idInquilino = i.id
+                        INNER JOIN inmuebles m ON c.idInmueble = m.id
+                        WHERE c.id = @id";
             using (var command = new MySqlCommand(sql, connection))
             {
                 command.Parameters.AddWithValue("@id", id).Value = id;
@@ -195,7 +196,19 @@ public class RepositorioContrato : RepositorioBase, IRepositorioContrato
                         Monto = reader.GetDecimal("monto"),
                         idInquilino = reader.GetInt32("idInquilino"),
                         idInmueble = reader.GetInt32("idInmueble"),
-                        Estado = reader.GetBoolean("estado")
+                        Estado = reader.GetBoolean("estado"),
+                        FechaTerminacionEfectiva = reader.IsDBNull(reader.GetOrdinal("fechaterminacionefectiva"))
+                            ? (DateTime?)null
+                            : reader.GetDateTime("fechaterminacionefectiva"),
+                        Inquilino = new Inquilino
+                        {
+                            Nombre = reader.GetString("nombre"),
+                            Apellido = reader.GetString("apellido")
+                        },
+                        Inmueble = new Inmueble
+                        {
+                            Direccion = reader.GetString("direccion")
+                        }
                     };
                 }
                 connection.Close();
@@ -262,4 +275,29 @@ public class RepositorioContrato : RepositorioBase, IRepositorioContrato
         }
         return contrato;
     }
+    public bool ControlSuperPosicion(int idInmueble, DateTime fechaInicio, DateTime fechaFin, int? id = null)
+    {
+        using (var connection = new MySqlConnection(connectionString))
+        {
+            string sql = @"
+                SELECT COUNT(*) 
+                FROM contratos
+                WHERE idInmueble = @idInmueble
+                AND (@fechaInicio <= fechaFin AND @fechaFin >= fechaInicio)
+                AND (@id IS NULL OR id <> @id);";
+
+            using (var command = new MySqlCommand(sql, connection))
+            {
+                command.Parameters.AddWithValue("@idInmueble", idInmueble);
+                command.Parameters.AddWithValue("@fechaInicio", fechaInicio);
+                command.Parameters.AddWithValue("@fechaFin", fechaFin);
+                command.Parameters.AddWithValue("@id", (object?)id ?? DBNull.Value);
+
+                connection.Open();
+                var count = Convert.ToInt32(command.ExecuteScalar());
+                return count > 0;
+            }
+        }
+    }
+
 }

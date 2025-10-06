@@ -11,7 +11,7 @@ namespace Proyecto_Inmobiliaria.Models
 	[Table("Inmuebles")]
 	public class Inmueble
 	{
-        [Key]
+		[Key]
 		[Display(Name = "Nº")]
 		public int Id { get; set; }
 		//[Required]
@@ -31,14 +31,14 @@ namespace Proyecto_Inmobiliaria.Models
 		public int Superficie { get; set; }
 		[Required(ErrorMessage = "Debe agregar un precio")]
 		public int Precio { get; set; }
-        
+
 		public decimal? Latitud { get; set; }
 		public decimal? Longitud { get; set; }
 		[Display(Name = "Dueño")]
 		[Required(ErrorMessage = "Debe agregar un propietario")]
 		public int IdPropietario { get; set; }
-		[ForeignKey(nameof(IdPropietario))]    
-		public Propietario? Propietario { get; set; }	
+		[ForeignKey(nameof(IdPropietario))]
+		public Propietario? Propietario { get; set; }
 		public string? UrlPortada { get; set; }
 		[NotMapped]//Para EF
 		public IFormFile? PortadaFile { get; set; }
@@ -46,6 +46,12 @@ namespace Proyecto_Inmobiliaria.Models
 		public IList<Imagen> Imagenes { get; set; } = new List<Imagen>();
 		[Required(ErrorMessage = "Debe agregar un estado")]
 		public string Estado { get; set; } 
+		
+
+		public override string ToString()
+    {
+        return $"{Id} {Direccion} | {Propietario?.Nombre} {Propietario?.Apellido}";
+    }
 	}
 	
 }
