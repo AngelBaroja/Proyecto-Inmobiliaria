@@ -89,11 +89,9 @@ Este sistema informatiza la gestión de alquileres y administración de propieda
 
 ## 📦 Dependencias principales del proyecto
 
-- **Microsoft.EntityFrameworkCore**
 - **MySql.Data**
 - **Microsoft.AspNetCore.Authentication.JwtBearer**
-- **MailKit**
-- **Microsoft.Extensions.Configuration**
+
 
 
 
